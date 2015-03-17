@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="fems"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+        xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+    
+	<thing-type id="weather">
+        <label>Weather</label>
+        <description>Connects to OpenWeatherMap</description>
+		<channels>
+			<channel id="CurClouds" typeId="CurClouds" />
+			<channel id="CurHumidity" typeId="CurHumidity" />
+			<channel id="CurPressure" typeId="CurPressure" />
+			<channel id="CurTemp" typeId="CurTemp" />
+			<!--<channel id="CurSnow" typeId="CurSnow" />-->
+			<channel id="CurWindDegrees" typeId="CurWindDegrees" />
+			<channel id="CurWindSpeed" typeId="CurWindSpeed" />
+			
+			<channel id="Fc1Clouds" typeId="Fc1Clouds" />
+			<channel id="Fc1Humidity" typeId="Fc1Humidity" />
+			<channel id="Fc1Pressure" typeId="Fc1Pressure" />
+			<channel id="Fc1Temp" typeId="Fc1Temp" />
+			<!-- <channel id="Fc1Snow" typeId="Fc1Snow" />-->
+			<channel id="Fc1WindDegrees" typeId="Fc1WindDegrees" />
+			<channel id="Fc1WindSpeed" typeId="Fc1WindSpeed" />
+			
+			<channel id="Fc2Clouds" typeId="Fc2Clouds" />
+			<channel id="Fc2Humidity" typeId="Fc2Humidity" />
+			<channel id="Fc2Pressure" typeId="Fc2Pressure" />
+			<channel id="Fc2Temp" typeId="Fc2Temp" />
+			<!--<channel id="Fc2Snow" typeId="Fc2Snow" />-->
+			<channel id="Fc2WindDegrees" typeId="Fc2WindDegrees" />
+			<channel id="Fc2WindSpeed" typeId="Fc2WindSpeed" />
+		</channels>
+ 		<config-description>
+			<parameter name="refresh" type="integer">
+				<label>Refresh interval</label>
+				<description>Specifies the refresh interval in seconds.</description>
+				<default>60</default>
+			</parameter>
+			<parameter name="cityid" type="integer">
+				<label>CityID</label>
+				<description>Specifies the CityID for OpenWeatherMap.</description>
+			</parameter>
+			<parameter name="appid" type="text">
+				<label>AppID</label>
+				<description>Specifies the AppID (apikey) for OpenWeatherMap.</description>
+			</parameter>
+		</config-description>
+    </thing-type>
+    
+   	<channel-type id="CurClouds"><item-type>Number</item-type><label>Current Clouds [%d %%]</label></channel-type>
+   	<channel-type id="CurHumidity"><item-type>Number</item-type><label>Current Humidity [%d %%]</label></channel-type>
+   	<channel-type id="CurPressure"><item-type>Number</item-type><label>Current Pressure</label></channel-type>
+   	<channel-type id="CurTemp"><item-type>Number</item-type><label>Current Temperature</label></channel-type>
+   	<!-- <channel-type id="CurSnow"><item-type>Number</item-type><label>Current Snow</label></channel-type> -->
+   	<channel-type id="CurWindDegrees"><item-type>Number</item-type><label>Current Wind Degrees</label></channel-type>
+   	<channel-type id="CurWindSpeed"><item-type>Number</item-type><label>Current Wind Speed</label></channel-type>
+
+   	<channel-type id="Fc1Clouds"><item-type>Number</item-type><label>3h-Forecast Clouds [%d %%]</label></channel-type>
+   	<channel-type id="Fc1Humidity"><item-type>Number</item-type><label>3h-Forecast Humidity [%d %%]</label></channel-type>
+   	<channel-type id="Fc1Pressure"><item-type>Number</item-type><label>3h-Forecast Pressure</label></channel-type>
+   	<channel-type id="Fc1Temp"><item-type>Number</item-type><label>3h-Forecast Temperature</label></channel-type>
+   	<!--<channel-type id="Fc1Snow"><item-type>Number</item-type><label>3h-Forecast Snow</label></channel-type>-->
+   	<channel-type id="Fc1WindDegrees"><item-type>Number</item-type><label>3h-Forecast Wind Degrees</label></channel-type>
+   	<channel-type id="Fc1WindSpeed"><item-type>Number</item-type><label>3h-Forecast Wind Speed</label></channel-type>
+   	
+   	<channel-type id="Fc2Clouds"><item-type>Number</item-type><label>6h-Forecast Clouds [%d %%]</label></channel-type>
+   	<channel-type id="Fc2Humidity"><item-type>Number</item-type><label>6h-Forecast Humidity [%d %%]</label></channel-type>
+   	<channel-type id="Fc2Pressure"><item-type>Number</item-type><label>6h-Forecast Pressure</label></channel-type>
+   	<channel-type id="Fc2Temp"><item-type>Number</item-type><label>6h-Forecast Temperature</label></channel-type>
+   	<!--<channel-type id="Fc2Snow"><item-type>Number</item-type><label>6h-Forecast Snow</label></channel-type>-->
+   	<channel-type id="Fc2WindDegrees"><item-type>Number</item-type><label>6h-Forecast Wind Degrees</label></channel-type>
+   	<channel-type id="Fc2WindSpeed"><item-type>Number</item-type><label>6h-Forecast Wind Speed</label></channel-type>    
+</thing:thing-descriptions>

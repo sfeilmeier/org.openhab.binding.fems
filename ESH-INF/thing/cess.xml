@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="fems"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+        xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+    <thing-type id="cess">
+        <label>CESS</label>
+        <description>Connects to a CESS Energy Storage System</description>
+ 		<config-description>
+			<parameter name="unitid" type="integer">
+				<label>Unit-ID</label>
+				<description>Specifies the Unit-ID for the CESS system.</description>
+				<default>100</default>
+			</parameter>
+			<parameter name="modbusinterface" type="text">
+				<label>Modbus interface</label>
+				<description>Specifies the interface for the modbus connection.</description>
+				<default>/dev/ttyUSB0</default>
+			</parameter>
+			<parameter name="apikey" type="text">
+				<label>Apikey for FEMSmonitor</label>
+				<description>Specifies the apikey to authenticate at FEMSmonitor.</description>
+				<default></default>
+			</parameter>
+			<parameter name="femsmonitorUrl" type="text">
+				<label>FEMSmonitor-Url</label>
+				<description>Specifies the Url of FEMSmonitor.</description>
+				<default>https://fenecon.de/femsmonitor</default>
+			</parameter>
+		</config-description>
+    </thing-type>
+
+</thing:thing-descriptions>

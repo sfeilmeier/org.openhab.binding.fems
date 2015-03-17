@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="fems"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+        xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+    
+	<thing-type id="dess">
+        <label>DESS</label>
+        <description>Connects to a DESS Distributed Energy Storage System</description>
+		<channels>
+			<channel id="BSMU_Battery_Stack_Overall_SOC" typeId="BSMU_Battery_Stack_Overall_SOC" />
+		</channels>
+ 		<config-description>
+			<parameter name="unitid" type="integer">
+				<label>Unit-ID</label>
+				<description>Specifies the Unit-ID for the DESS system.</description>
+				<default>4</default>
+			</parameter>
+			<parameter name="modbusinterface" type="text">
+				<label>Modbus interface</label>
+				<description>Specifies the interface for the modbus connection.</description>
+				<default>/dev/ttyUSB0</default>
+			</parameter>
+			<parameter name="apikey" type="text">
+				<label>Apikey for FEMSmonitor</label>
+				<description>Specifies the apikey to authenticate at FEMSmonitor.</description>
+			</parameter>
+			<parameter name="femsmonitorUrl" type="text">
+				<label>FEMSmonitor-Url</label>
+				<description>Specifies the Url of FEMSmonitor.</description>
+				<default>https://fenecon.de/femsmonitor</default>
+			</parameter>
+		</config-description>
+    </thing-type>
+    
+    <channel-type id="BSMU_Battery_Stack_Overall_SOC"><item-type>Number</item-type><label>BSMU_Battery_Stack_Overall_SOC</label></channel-type>
+    
+</thing:thing-descriptions>
