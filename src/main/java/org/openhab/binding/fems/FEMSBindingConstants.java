@@ -44,6 +44,5 @@ public class FEMSBindingConstants {
     public final static Board BBB = Platform.createBoard();
     
     // Agents
-    //public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = new OnlineMonitoringAgent("Online-Monitoring");
-    public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = null;
+    public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = new OnlineMonitoringAgent("Online-Monitoring");
 }

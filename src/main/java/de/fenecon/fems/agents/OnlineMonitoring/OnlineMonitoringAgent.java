@@ -24,7 +24,7 @@ import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
 import de.fenecon.fems.agents.OnlineMonitoring.Message.SystemMessage;
 
 public class OnlineMonitoringAgent extends Agent {
-	private static Logger logger = LoggerFactory.getLogger(OnlineMonitoringAgent.class);
+	private Logger logger = LoggerFactory.getLogger(OnlineMonitoringAgent.class);
 	
 	protected static final String ONLINE_MONITORING_URL = "https://fenecon.de/femsmonitor";
 	protected static final int PROTOCOL_VERSION = 1;

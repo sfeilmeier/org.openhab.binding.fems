@@ -57,34 +57,38 @@ public class DataMessage extends Message {
 		JSONObject json = new JSONObject();
 		json.put("timestamp", timestamp.getTime());
 		json.put("content", content.toString());
-		for(Object keyObj : data.keySet()) {
-			if(keyObj instanceof String) {
-				String key = (String)keyObj;
-				json.put(key, data.get(key));
+		if(data != null) {
+			for(Object keyObj : data.keySet()) {
+				if(keyObj instanceof String) {
+					String key = (String)keyObj;
+					json.put(key, data.get(key));
+				}
 			}
 		}
 		// convert eclipse smarthome states to json types
-		JSONObject statesJson = new JSONObject(); 
-		for (String key : states.keySet()) {
-			org.eclipse.smarthome.core.types.State state = states.get(key);
-			if(state instanceof OnOffType) {
-				if((OnOffType)state == OnOffType.ON) {
-					statesJson.put(key, 1);
+		if(states != null) {
+			JSONObject statesJson = new JSONObject(); 
+			for (String key : states.keySet()) {
+				org.eclipse.smarthome.core.types.State state = states.get(key);
+				if(state instanceof OnOffType) {
+					if((OnOffType)state == OnOffType.ON) {
+						statesJson.put(key, 1);
+					} else {
+						statesJson.put(key, 0);
+					}
+				} else if (state instanceof UnDefType) {
+					statesJson.put(key, JSONObject.NULL);
+				} else if (state instanceof StringType) {
+					statesJson.put(key, state.toString());
+				} else if (state instanceof DecimalType) {
+					DecimalType stateDecimal = (DecimalType)state;
+					statesJson.put(key, stateDecimal.toBigDecimal());
 				} else {
-					statesJson.put(key, 0);
+					statesJson.put(key, state.toString());
 				}
-			} else if (state instanceof UnDefType) {
-				statesJson.put(key, JSONObject.NULL);
-			} else if (state instanceof StringType) {
-				statesJson.put(key, state.toString());
-			} else if (state instanceof DecimalType) {
-				DecimalType stateDecimal = (DecimalType)state;
-				statesJson.put(key, stateDecimal.toBigDecimal());
-			} else {
-				statesJson.put(key, state.toString());
 			}
+			json.put("states", statesJson);
 		}
-		json.put("states", statesJson);		
 		return json;
 	}
 }

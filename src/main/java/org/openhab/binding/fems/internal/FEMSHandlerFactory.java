@@ -52,7 +52,7 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
     protected void activate(ComponentContext componentContext) {
     	super.activate(componentContext);
     
-    	logger.info("activate");
+    	logger.info("Activated FEMS Binding");
 	
 		// remove old RS485 lock file
 		try {
@@ -60,13 +60,13 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-    	
-    	// Turn 4. UserLED on
+
+		// Turn 4. UserLED on
     	try {
 			Files.write(Paths.get("/sys/class/leds/beaglebone:green:usr3/brightness"), "1".getBytes());
 		} catch (IOException e1) { logger.error(e1.getMessage()); }
-    	
-		// LCD Display
+
+    	// LCD Display
     	try {
 			NetworkInterface n = NetworkInterface.getByName("eth0");
 			Enumeration<InetAddress> ee = n.getInetAddresses();
@@ -77,8 +77,8 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 		        }
 		    }
     	} catch (SocketException e) { /* no IP-Address - ignore */ }
- 
-		// read FEMS properties from /etc/fems
+
+    	// read FEMS properties from /etc/fems
 		Properties properties = new Properties();
 		BufferedInputStream stream = null;
 		try {
@@ -88,11 +88,11 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
-
+		
 		// start OnlineMonitoringAgent
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
-
+		
 		// send init message to FEMS Online-Monitoring
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("openHAB started");
 	};
