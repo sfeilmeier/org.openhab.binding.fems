@@ -36,8 +36,7 @@ import org.openhab.binding.fems.internal.io.IOOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessage;
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessageContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
 
 public class IOHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(IOHandler.class);
@@ -65,7 +64,7 @@ public class IOHandler extends BaseThingHandler {
 
 	@Override
 	public void initialize() {			
-		Board bbb = FEMSBindingConstants.bbb;
+		Board bbb = FEMSBindingConstants.BBB;
 		pins = new HashMap<String, IO>();
 		
 		// LCD Display
@@ -145,9 +144,11 @@ public class IOHandler extends BaseThingHandler {
 			IOOutput ioOutput = (IOOutput)io;
 			ioOutput.handleCommand(command);
 			
-			DataMessage message = new DataMessage(DataMessageContentType.IO);
-			message.states.put(channelUID.getId(), io.getState());
-			FEMSBindingConstants.onlineMonitoringAgent.message(message);
+			HashMap<String, State> states = new HashMap<String, State>();
+			states.put(channelUID.getId(), io.getState());
+			FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(
+					ContentType.IO,
+					states);
 		} else {
 			logger.error("This is not an IO Output: " + channelUID.getId());
 		}

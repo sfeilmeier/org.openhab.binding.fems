@@ -34,9 +34,6 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.ApikeyMessage;
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.SystemMessage;
-
 /**
  * The {@link FEMSHandlerFactory} is responsible for creating things and thing 
  * handlers.
@@ -93,11 +90,11 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 		}
 
 		// start OnlineMonitoringAgent
-		FEMSBindingConstants.onlineMonitoringAgent.start();
-		FEMSBindingConstants.onlineMonitoringAgent.message(new ApikeyMessage(properties.getProperty("apikey")));
+		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
+		FEMSBindingConstants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
 
 		// send init message to FEMS Online-Monitoring
-		FEMSBindingConstants.onlineMonitoringAgent.message(new SystemMessage("openHAB started"));
+		FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("openHAB started");
 	};
 
 	@Override

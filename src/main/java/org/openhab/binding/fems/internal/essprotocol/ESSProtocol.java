@@ -9,6 +9,7 @@
 package org.openhab.binding.fems.internal.essprotocol;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.wimpi.modbus.Modbus;
 import net.wimpi.modbus.io.ModbusSerialTransaction;
@@ -18,6 +19,7 @@ import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
 import net.wimpi.modbus.net.SerialConnection;
 import net.wimpi.modbus.util.SerialParameters;
 
+import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
@@ -26,8 +28,8 @@ import org.openhab.binding.fems.internal.essprotocol.modbus.OnOffBitItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessage;
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessageContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
 
 public abstract class ESSProtocol {
 	private Logger logger = LoggerFactory.getLogger(ESSProtocol.class);
@@ -81,22 +83,22 @@ public abstract class ESSProtocol {
 	
 	public abstract DataMessage getDataMessage();
 	
-	protected DataMessage getDataMessage(DataMessageContentType contentType) {
-		DataMessage message = new DataMessage(contentType);
+	protected DataMessage getDataMessage(ContentType contentType) {
+		HashMap<String, State> states = new HashMap<String, State>();
 		for (ModbusElementRange wordRange : getWordRanges()) {
 			for (ModbusElement word : wordRange.getWords()) {
 				if(word instanceof ModbusItem) {
 					ModbusItem item = (ModbusItem)word;
-					message.states.put(item.getName(), item.getState());
+					states.put(item.getName(), item.getState());
 				} else if (word instanceof BitWordElement) {
 					BitWordElement bitWord = (BitWordElement)word;
 					for (OnOffBitItem bitItem : bitWord.getBitItems()) {
-						message.states.put(bitWord.getName() + "_" + bitItem.getName(), bitItem.getState());
+						states.put(bitWord.getName() + "_" + bitItem.getName(), bitItem.getState());
 					} 
 				}
 			}
-		}	
-		return message;
+		}
+		return new DataMessage(contentType, states, null);
 	}
 	
 	public synchronized SerialConnection getSerialConnection() throws Exception {

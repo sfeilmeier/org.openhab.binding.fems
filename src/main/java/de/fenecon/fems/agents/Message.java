@@ -1,4 +1,4 @@
-package de.fenecon.fems.scheduler.tools;
+package de.fenecon.fems.agents;
 
 public class Message {
 	protected final Agent sender;

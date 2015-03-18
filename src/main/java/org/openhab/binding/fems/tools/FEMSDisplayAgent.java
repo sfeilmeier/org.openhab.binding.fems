@@ -57,7 +57,7 @@ public class FEMSDisplayAgent extends Thread {
 	@Override
 	public void run() {
 		/* LCD Display */
-    	Board bbb = FEMSBindingConstants.bbb;
+    	Board bbb = FEMSBindingConstants.BBB;
         PinIOGroup ioGroup = new PinIOGroup(bbb.getPin(BBBNames.P9_12).as(DigitalIO.class),  //enable pin
     		bbb.getPin(BBBNames.P8_30).as(DigitalIO.class),  //db 4
     		bbb.getPin(BBBNames.P8_28).as(DigitalIO.class),  //db 5

@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package de.fenecon.fems.scheduler.tools;
+package de.fenecon.fems.agents;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -46,7 +46,7 @@ public abstract class Agent extends Thread {
 	 * 
 	 * @param message
 	 */
-	public void message(Message message) {
+	protected void message(Message message) {
 		messages.add(message);
 		lock.release();
 	}

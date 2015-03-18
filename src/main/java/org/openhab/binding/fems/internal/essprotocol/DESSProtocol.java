@@ -12,8 +12,8 @@ import java.util.ArrayList;
 
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessage;
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessageContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
 
 public class DESSProtocol extends ESSProtocol {
 
@@ -29,6 +29,6 @@ public class DESSProtocol extends ESSProtocol {
 
 	@Override
 	public DataMessage getDataMessage() {
-		return getDataMessage(DataMessageContentType.DESS);
+		return getDataMessage(ContentType.DESS);
 	};
 }

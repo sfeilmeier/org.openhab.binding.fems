@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.entity.ContentType;
 import org.bitpipeline.lib.owm.ForecastWeatherData;
 import org.bitpipeline.lib.owm.LocalizedWeatherData;
 import org.bitpipeline.lib.owm.OwmClient;
@@ -35,9 +34,7 @@ import org.openhab.binding.fems.FEMSBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessage;
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessageContentType;
-
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
 
 public class WeatherHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(WeatherHandler.class);
@@ -215,29 +212,30 @@ public class WeatherHandler extends BaseThingHandler {
 					OwmClient owm = new OwmClient();
 					owm.setAPPID(appid);
 						
-					DataMessage message = new DataMessage(DataMessageContentType.WEATHER);
-					message.data.put("cityid", cityid);
+					JSONObject data = new JSONObject();
+					data.put("cityid", cityid);
 					
+					HashMap<String, State> states = new HashMap<String, State>();
 					// Current weather
 					StatusWeatherData currentWeatherData = owm.currentWeatherAtCity(cityid);
 					Map<String, State> currentWeatherDataMap = getItems("Cur", currentWeatherData);
-					message.states.putAll(currentWeatherDataMap);
+					states.putAll(currentWeatherDataMap);
 					
 					// Forecast
 					WeatherForecastResponse forecastResponse = owm.forecastWeatherAtCity(cityid);
 					List<ForecastWeatherData> forecastWeatherDataList = forecastResponse.getForecasts();
 					for (int i = 0; i < (forecastWeatherDataList.size() > 2 ? 3 : forecastWeatherDataList.size()); i++) {
 						Map<String, State> forecastWeatherDataMap = getItems("Fc" + i, forecastWeatherDataList.get(i));
-						message.states.putAll(forecastWeatherDataMap);
+						states.putAll(forecastWeatherDataMap);
 					}
 					
 					// Publish to openhab
-					for (String name : message.states.keySet()) {
-						updateState(new ChannelUID(getThing().getUID(), name), message.states.get(name) );
+					for (String name : states.keySet()) {
+						updateState(new ChannelUID(getThing().getUID(), name), states.get(name) );
 					}
 					
 					// Send to server
-					FEMSBindingConstants.onlineMonitoringAgent.message(message);
+					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(ContentType.IO, states, data);
 					
 				} catch(Exception e) {
 					logger.error("Exception occurred during execution: {}", e.getMessage());

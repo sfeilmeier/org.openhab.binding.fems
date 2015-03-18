@@ -21,8 +21,6 @@ import org.openhab.binding.fems.FEMSBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.SystemMessage;
-
 public class FEMSYaler {
 	private static final String serviceFileName = "fems-yalertunnel.service";
 	private static final Path serviceFile = Paths.get("/lib/systemd/system/", serviceFileName);
@@ -119,8 +117,7 @@ public class FEMSYaler {
         serviceIsActive = true;
         logger.info("Yalertunnel is now activated");
         
-        FEMSBindingConstants.onlineMonitoringAgent.message(
-        		new SystemMessage("Yalertunnel is now activated"));
+        FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("Yalertunnel is now activated");
 	}
 	
 	public void deactivateTunnel() throws IOException, InterruptedException {
@@ -156,7 +153,6 @@ public class FEMSYaler {
 		serviceIsActive = false;
 		logger.info("Yalertunnel is now deactivated");
 		
-        FEMSBindingConstants.onlineMonitoringAgent.message(
-        		new SystemMessage("Yalertunnel is now deactivated"));
+        FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("Yalertunnel is now deactivated");
 	}
 }

@@ -36,7 +36,7 @@ import org.openhab.binding.fems.internal.essprotocol.modbus.OnOffBitItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgentMessage.DataMessage;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
 
 public abstract class ESSHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(ESSHandler.class);
@@ -133,7 +133,7 @@ public abstract class ESSHandler extends BaseThingHandler {
 					} catch (SocketException e) { /* no IP-Address - ignore */ }
 					
 					DataMessage message = protocol.getDataMessage();
-					FEMSBindingConstants.onlineMonitoringAgent.message(message);
+					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(message);
 					
 		        	totalWaitTime = 0;
 				} catch(ModbusException e) {

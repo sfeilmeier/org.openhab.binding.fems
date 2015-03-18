@@ -11,13 +11,14 @@ package org.openhab.binding.fems;
 import java.util.Collection;
 
 
+
 import org.bulldog.core.platform.Board;
 import org.bulldog.core.platform.Platform;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 import com.google.common.collect.Lists;
 
-import de.fenecon.fems.scheduler.agents.OnlineMonitoring.OnlineMonitoringAgent;
+import de.fenecon.fems.agents.OnlineMonitoring.OnlineMonitoringAgent;
 
 /**
  * The {@link FEMSBinding} class defines common constants, which are 
@@ -40,8 +41,9 @@ public class FEMSBindingConstants {
     		Lists.newArrayList(THING_TYPE_CESS, THING_TYPE_DESS, THING_TYPE_WEATHER, THING_TYPE_IO);
     
     // BeagleBone Black hardware layer
-    public final static Board bbb = Platform.createBoard();
+    public final static Board BBB = Platform.createBoard();
     
     // Agents
-    public final static OnlineMonitoringAgent onlineMonitoringAgent = new OnlineMonitoringAgent("Online-Monitoring");
+    //public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = new OnlineMonitoringAgent("Online-Monitoring");
+    public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = null;
 }
