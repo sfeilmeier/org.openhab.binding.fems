@@ -154,6 +154,7 @@ public abstract class ESSHandler extends BaseThingHandler {
 					
 				} catch(Exception e) {
 					logger.error("Exception occurred during execution: {}", e.getMessage());
+					e.printStackTrace();
 					protocol.dispose();
 				}
 			}

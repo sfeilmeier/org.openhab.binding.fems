@@ -42,14 +42,14 @@ public class DataMessage extends Message {
 		this(new Date(), content, states, data);
 	}
 	
-	public DataMessage(final Date timestamp, final ContentType content, 
-			final HashMap<String, State> states, final JSONObject data) {
+	public DataMessage(Date timestamp, ContentType content, 
+			HashMap<String, State> states, JSONObject data) {
 		this.timestamp = timestamp;
 		this.content = content;
 		this.states = states;
-		this.data = data;
+		this.data = (data == null) ? new JSONObject() : data;
 		//TODO: more elegant solution for yaler
-		data.put("yaler", FEMSYaler.getFEMSYaler().isActive());
+		this.data.put("yaler", FEMSYaler.getFEMSYaler().isActive());
 	}
 	
 	/** Convert state data from HashMap to JSON */

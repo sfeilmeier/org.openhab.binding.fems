@@ -12,6 +12,7 @@ import java.util.Collection;
 
 
 
+
 import org.bulldog.core.platform.Board;
 import org.bulldog.core.platform.Platform;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
@@ -19,6 +20,7 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import com.google.common.collect.Lists;
 
 import de.fenecon.fems.agents.OnlineMonitoring.OnlineMonitoringAgent;
+import de.fenecon.fems.agents.OnlineMonitoring.OnlineMonitoringCacheAgent;
 
 /**
  * The {@link FEMSBinding} class defines common constants, which are 
@@ -44,5 +46,8 @@ public class FEMSBindingConstants {
     public final static Board BBB = Platform.createBoard();
     
     // Agents
-    public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = new OnlineMonitoringAgent("Online-Monitoring");
+    public final static OnlineMonitoringCacheAgent ONLINE_MONITORING_CACHE_AGENT = 
+    		new OnlineMonitoringCacheAgent("Online-Monitoring Cache");
+    public final static OnlineMonitoringAgent ONLINE_MONITORING_AGENT = 
+    		new OnlineMonitoringAgent("Online-Monitoring", ONLINE_MONITORING_CACHE_AGENT);
 }

@@ -89,9 +89,11 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 			logger.error(e.getMessage());
 		}
 		
-		// start OnlineMonitoringAgent
-		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
+		// starte Agents
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
+		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
+		FEMSBindingConstants.ONLINE_MONITORING_CACHE_AGENT.setApikey(properties.getProperty("apikey"));
+		FEMSBindingConstants.ONLINE_MONITORING_CACHE_AGENT.start();
 		
 		// send init message to FEMS Online-Monitoring
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("openHAB started");
