@@ -2,29 +2,26 @@ package de.fenecon.fems.agents.OnlineMonitoring.Message;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.types.State;
-import org.eclipse.smarthome.core.types.UnDefType;
-import org.json.JSONObject;
-import org.openhab.binding.fems.tools.FEMSYaler;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+
+import de.fenecon.fems.tools.FEMSYaler;
 
 /**
  * Message with data to be sent to Online-Monitoring
  */
 public class DataMessage extends Message {
 	/* General types of DataMessages */
-	public static enum ContentType {
-	    CESS("cess"),
-	    DESS("dess"),
+	public static enum MethodType {
+	    COMMERCIAL("commercial"),
+	    PRO("pro"),
 	    IO("io"),
 	    SYSTEM("system"),
 	    WEATHER("weather");
 
 	    private final String text;
-	    private ContentType(final String text) {
+	    private MethodType(final String text) {
 	        this.text = text;
 	    }
 	    @Override
@@ -33,62 +30,28 @@ public class DataMessage extends Message {
 	    }
 	}
 	
-	protected final Date timestamp;
-	protected final ContentType content;
-	protected final HashMap<String, State> states;
-	protected final JSONObject data;
+	protected final JSONRPC2Request request;
+	protected final static int JSON_RPC_ID = 0;
 	
-	public DataMessage(ContentType content, HashMap<String, State> states, JSONObject data) {
-		this(new Date(), content, states, data);
+	public DataMessage(MethodType method, Map<String, Object> states, Map<String, Object> params) {
+		this(new Date(), method, states, params);
 	}
 	
-	public DataMessage(Date timestamp, ContentType content, 
-			HashMap<String, State> states, JSONObject data) {
-		this.timestamp = timestamp;
-		this.content = content;
-		this.states = states;
-		this.data = (data == null) ? new JSONObject() : data;
-		//TODO: more elegant solution for yaler
-		this.data.put("yaler", FEMSYaler.getFEMSYaler().isActive());
-	}
-	
-	/** Convert state data from HashMap to JSON */
-	public JSONObject convertToJson() {
-		JSONObject json = new JSONObject();
-		json.put("timestamp", timestamp.getTime());
-		json.put("content", content.toString());
-		if(data != null) {
-			for(Object keyObj : data.keySet()) {
-				if(keyObj instanceof String) {
-					String key = (String)keyObj;
-					json.put(key, data.get(key));
-				}
-			}
+	public DataMessage(Date timestamp, MethodType method, 
+			Map<String, Object> states, Map<String, Object> params) {
+		HashMap<String, Object> newParams = new HashMap<String, Object>();
+		newParams.put("timestamp", timestamp.getTime()/1000);
+		if(params != null) {
+			newParams.putAll(params);
 		}
-		// convert eclipse smarthome states to json types
 		if(states != null) {
-			JSONObject statesJson = new JSONObject(); 
-			for (String key : states.keySet()) {
-				org.eclipse.smarthome.core.types.State state = states.get(key);
-				if(state instanceof OnOffType) {
-					if((OnOffType)state == OnOffType.ON) {
-						statesJson.put(key, 1);
-					} else {
-						statesJson.put(key, 0);
-					}
-				} else if (state instanceof UnDefType) {
-					statesJson.put(key, JSONObject.NULL);
-				} else if (state instanceof StringType) {
-					statesJson.put(key, state.toString());
-				} else if (state instanceof DecimalType) {
-					DecimalType stateDecimal = (DecimalType)state;
-					statesJson.put(key, stateDecimal.toBigDecimal());
-				} else {
-					statesJson.put(key, state.toString());
-				}
-			}
-			json.put("states", statesJson);
+			newParams.put("states", states);
 		}
-		return json;
+		newParams.put("yaler", FEMSYaler.getFEMSYaler().isActive());
+		request = new JSONRPC2Request(method.toString(), newParams, JSON_RPC_ID);
+	}
+	
+	public JSONRPC2Request getJsonRpcRequest() {
+		return request;
 	}
 }

@@ -9,7 +9,10 @@ Bundle-ClassPath: .,
  lib/bulldog.beagleboneblack.hardfp.jar,
  lib/httpclient-4.3.6.jar,
  lib/httpcore-4.3.3.jar,
- lib/json-20140107.jar
+ lib/json-20140107.jar,
+ lib/jsonrpc2-base-1.36.jar,
+ lib/jsonrpc2-client-1.15.jar,
+ lib/json-smart-1.2.jar
 Import-Package: com.google.common.collect,
  org.eclipse.smarthome.config.core,
  org.eclipse.smarthome.core.library.types,

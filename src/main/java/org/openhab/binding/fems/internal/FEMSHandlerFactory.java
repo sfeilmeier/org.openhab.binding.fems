@@ -89,7 +89,7 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 			logger.error(e.getMessage());
 		}
 		
-		// starte Agents
+		// start Agents
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
 		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
 		FEMSBindingConstants.ONLINE_MONITORING_CACHE_AGENT.setApikey(properties.getProperty("apikey"));

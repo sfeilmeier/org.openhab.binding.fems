@@ -1,6 +1,7 @@
 package de.fenecon.fems.agents.OnlineMonitoring.Message;
 
-import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
 
@@ -9,8 +10,14 @@ import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
  */
 public class SystemMessage extends DataMessage {
 	public SystemMessage(String text) {
-		super(ContentType.SYSTEM,
+		super(MethodType.SYSTEM,
 				null,
-				new JSONObject().put("system", text));
+				generateParamsMap(text));
+	}
+	
+	private static Map<String, Object> generateParamsMap(String text) {
+		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("text", text);
+		return params;
 	}
 }

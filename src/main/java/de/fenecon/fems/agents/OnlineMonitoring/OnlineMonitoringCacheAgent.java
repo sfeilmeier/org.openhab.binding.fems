@@ -1,18 +1,19 @@
 package de.fenecon.fems.agents.OnlineMonitoring;
 
 import java.io.IOException;
-import java.util.Date;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.tools.JSONCache;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.jsonrpc2.client.JSONRPC2SessionException;
+
+import de.fenecon.fems.tools.JSONRPC2RequestCache;
 
 public class OnlineMonitoringCacheAgent extends OnlineMonitoringAbstractAgent {
 	private Logger logger = LoggerFactory.getLogger(OnlineMonitoringCacheAgent.class);
 	
-	private JSONCache jsonCache = null;
+	private JSONRPC2RequestCache requestCache = null;
 	
 	/**
 	 * {@inheritDoc}
@@ -26,7 +27,7 @@ public class OnlineMonitoringCacheAgent extends OnlineMonitoringAbstractAgent {
 	 */
 	@Override
 	public void run() {
-		if(!getJsonCache().isEmpty()) { // initialize JSON Cache
+		if(!getRequestCache().isEmpty()) { // initialize JSON Cache
 			lock.release(); // immediately start sending if we have cached messages
 		}
 		super.run();
@@ -38,16 +39,15 @@ public class OnlineMonitoringCacheAgent extends OnlineMonitoringAbstractAgent {
 	@Override
 	public void foreverLoop() throws InterruptedException {
 		Thread.sleep(1000); // wait for 1 second
-		if(!getJsonCache().isEmpty()) {
-			JSONObject json = jsonCache.pop();
-			logger.info("Trying to send cached data"
-					+ (json.has("timestamp") ? " from " + new Date(json.getLong("timestamp")) : ""));
+		if(!getRequestCache().isEmpty()) {
+			JSONRPC2Request request = requestCache.pop();
+			logger.info("Trying to send cached data");
 			try {
-				sendToOnlineMonitoring(json); // ignoring return message for cached messages
-			} catch (IOException e) {
-				sendLater(json);
+				sendToOnlineMonitoring(request); // ignoring return message for cached messages
+			} catch (IOException | JSONRPC2SessionException e) {
+				sendLater(request);
 			}
-			if(!getJsonCache().isEmpty()) {
+			if(!getRequestCache().isEmpty()) {
 				lock.release();
 			}
 		}
@@ -57,16 +57,16 @@ public class OnlineMonitoringCacheAgent extends OnlineMonitoringAbstractAgent {
 	 * Add a message to the Cache Agent
 	 * @param message
 	 */
-	public void sendLater(JSONObject json) {
-		getJsonCache().push(json);
+	public void sendLater(JSONRPC2Request request) {
+		getRequestCache().push(request);
 		lock.release();
 	}
 	
-	/** make sure we have a valid JSON Cache object */
-	private JSONCache getJsonCache() {
-		if(jsonCache == null) {
-			jsonCache = new JSONCache();
+	/** make sure we have a valid JSONRPC2Request Cache object */
+	private JSONRPC2RequestCache getRequestCache() {
+		if(requestCache == null) {
+			requestCache = new JSONRPC2RequestCache();
 		}
-		return jsonCache;
+		return requestCache;
 	}
 }

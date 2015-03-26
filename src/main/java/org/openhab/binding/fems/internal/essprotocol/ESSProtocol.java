@@ -10,6 +10,7 @@ package org.openhab.binding.fems.internal.essprotocol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import net.wimpi.modbus.Modbus;
 import net.wimpi.modbus.io.ModbusSerialTransaction;
@@ -20,6 +21,7 @@ import net.wimpi.modbus.net.SerialConnection;
 import net.wimpi.modbus.util.SerialParameters;
 
 import org.eclipse.smarthome.core.types.State;
+import org.openhab.binding.fems.internal.FEMSBindingTools;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
@@ -29,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public abstract class ESSProtocol {
 	private Logger logger = LoggerFactory.getLogger(ESSProtocol.class);
@@ -81,9 +83,9 @@ public abstract class ESSProtocol {
 		}
 	}
 	
-	public abstract DataMessage getDataMessage();
+	public abstract DataMessage getDataMessage(Map<String, Object> params);
 	
-	protected DataMessage getDataMessage(ContentType contentType) {
+	protected DataMessage getDataMessage(MethodType contentType, Map<String, Object> params) {
 		HashMap<String, State> states = new HashMap<String, State>();
 		for (ModbusElementRange wordRange : getWordRanges()) {
 			for (ModbusElement word : wordRange.getWords()) {
@@ -98,7 +100,9 @@ public abstract class ESSProtocol {
 				}
 			}
 		}
-		return new DataMessage(contentType, states, null);
+		return new DataMessage(contentType, 
+				FEMSBindingTools.convertStatesForMessage(states), 
+				params);
 	}
 	
 	public synchronized SerialConnection getSerialConnection() throws Exception {

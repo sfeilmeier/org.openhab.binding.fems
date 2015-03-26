@@ -8,7 +8,7 @@
  */
 
 /** ATTENTION: keep in sync with de.fenecon.fems.tools.FEMSYaler.java **/
-package org.openhab.binding.fems.tools;
+package de.fenecon.fems.tools;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.openhab.binding.fems.FEMSBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,9 +62,14 @@ public class FEMSYaler {
 		return serviceIsActive;
 	}
 	
-	public void activateTunnel(String relayDomain) throws Exception {
+	/** activate tunnel. Return true, if it was actually activated and was not already activated before
+	 * 
+	 * @param relayDomain
+	 * @throws Exception
+	 */
+	public boolean activateTunnel(String relayDomain) throws Exception {
 		/* do nothing if service is active */
-		if(serviceIsActive) { return; }
+		if(serviceIsActive) { return false; }
 		
 		/* check if relayDomain is consistent */
 		if(!relayDomain.matches("fenecon-\\w{4}-\\w{4}")) {
@@ -117,12 +121,18 @@ public class FEMSYaler {
         serviceIsActive = true;
         logger.info("Yalertunnel is now activated");
         
-        FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("Yalertunnel is now activated");
+        return true;
 	}
 	
-	public void deactivateTunnel() throws IOException, InterruptedException {
+	/** deactivate tunnel. Return true, if it was actually deactivated and was not already deactivated before
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public boolean deactivateTunnel() throws IOException, InterruptedException {
 		/* do nothing if service is not active */
-		if(!serviceIsActive) { return; }
+		if(!serviceIsActive) { return false; }
 		
 		/* stop service */
 		Runtime rt = Runtime.getRuntime();
@@ -152,7 +162,7 @@ public class FEMSYaler {
 		/* set as inactive */
 		serviceIsActive = false;
 		logger.info("Yalertunnel is now deactivated");
-		
-        FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("Yalertunnel is now deactivated");
+	
+        return true;
 	}
 }

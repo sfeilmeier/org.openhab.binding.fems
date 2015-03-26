@@ -1,24 +1,24 @@
 package de.fenecon.fems.agents.OnlineMonitoring;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Date;
+import java.util.Map;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
+import com.thetransactioncompany.jsonrpc2.client.JSONRPC2Session;
+import com.thetransactioncompany.jsonrpc2.client.JSONRPC2SessionException;
 
 import de.fenecon.fems.agents.Agent;
 
 public abstract class OnlineMonitoringAbstractAgent extends Agent {
 	private Logger logger = LoggerFactory.getLogger(OnlineMonitoringAbstractAgent.class);
 	
-	protected static final URL ONLINE_MONITORING_URL = makeUrl("https://fenecon.de/femsmonitor");
+	protected static final URL ONLINE_MONITORING_URL = makeUrl("https://fenecon.de/fems");
 	private static URL makeUrl(String urlString) {
 	    try {
 	        return new java.net.URL(urlString);
@@ -26,8 +26,6 @@ public abstract class OnlineMonitoringAbstractAgent extends Agent {
 	        return null;
 	    }
 	}
-	
-	protected static final int PROTOCOL_VERSION = 1;
 	
 	protected volatile String apikey = null;
 	
@@ -47,7 +45,7 @@ public abstract class OnlineMonitoringAbstractAgent extends Agent {
 	/**
 	 * Send message to online-monitoring 
 	 */
-	protected JSONObject sendToOnlineMonitoring(JSONObject json) throws IOException {
+	protected Map<?, ?> sendToOnlineMonitoring(JSONRPC2Request request) throws JSONRPC2SessionException, IOException {
 		// was apikey set? otherwise send to cache
 		if(this.apikey == null) {
 			logger.info("No apikey - caching data");
@@ -56,45 +54,34 @@ public abstract class OnlineMonitoringAbstractAgent extends Agent {
 			throw new IOException("No apikey");
 		}
 		
-		// send json to server
-		HttpsURLConnection con;
-		JSONObject retJson = null;
-		con = (HttpsURLConnection)ONLINE_MONITORING_URL.openConnection();
-			
-		try { con.setRequestMethod("POST");	} catch (ProtocolException e1) { }
-		con.setRequestProperty("Content-Type","application/json"); 
-		con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0;Windows98;DigExt)"); 
-		con.setDoOutput(true); 
-		con.setDoInput(true);
-			
-		DataOutputStream output = new DataOutputStream(con.getOutputStream());  
-		try {
-			output.writeBytes(json.toString());
-		} finally {
-			output.close();
-		}
+		// send JSON-RPC to server
+		JSONRPC2Session session = new JSONRPC2Session(ONLINE_MONITORING_URL);
+		JSONRPC2Response response = session.send(request);			
 
-		String content = (json.has("content") ? json.getString("content") : "unknown");
-		if(con.getResponseCode() == 200) {
-			logger.info("Successfully sent " + content
-					+ "-data; server answered: " + con.getResponseMessage());
+		// handle result
+		Date timestamp = null;
+		try {
+			Map<String, Object> params = request.getNamedParams();
+			if(params.containsKey("timestamp")) { // read timestamp from request for log message
+				timestamp = new Date(((Long)(params.get("timestamp")))*1000);
+			}
+		} catch (ClassCastException e) {
+			logger.warn("Unable to get timestamp: " + e.getMessage());
+			timestamp = null;
+		}
+		if(response.indicatesSuccess()) {
+			logger.info("Successfully sent " + request.getMethod() + "-data" 
+					+ (timestamp != null ? " from " + timestamp.toString() : "") );
+			Object result = response.getResult();
+			if(result instanceof Map<?, ?>) {
+				return (Map<?, ?>) result;
+			} else {
+				return null;
+			}
 		} else {
-			throw new IOException(content + "-data; server response: " + con.getResponseCode());
+			throw new IOException(request.getMethod() + "-data"
+					+ (timestamp != null ? " from " + timestamp.toString() : "")
+					+ "; server response: " + response.getError().getMessage());
 		}
-
-		// read reply from server
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine = in.readLine();
-            if(inputLine != null) {
-	        	retJson = new JSONObject(inputLine);
-	        }
-        } catch (IOException e) {
-        	logger.info("Error while reading server reply: " + e.getMessage());
-		} finally {
-        	if(in != null) try { in.close(); } catch (IOException e) { }
-        }
-		return retJson;
 	}
 }

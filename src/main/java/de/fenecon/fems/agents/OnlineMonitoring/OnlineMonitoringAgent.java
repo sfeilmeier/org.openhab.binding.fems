@@ -1,17 +1,19 @@
 package de.fenecon.fems.agents.OnlineMonitoring;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
 
-import org.json.JSONObject;
-import org.openhab.binding.fems.tools.FEMSYaler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.jsonrpc2.client.JSONRPC2SessionException;
+
 import de.fenecon.fems.agents.Message;
 import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 import de.fenecon.fems.agents.OnlineMonitoring.Message.SystemMessage;
+import de.fenecon.fems.tools.FEMSYaler;
 
 public class OnlineMonitoringAgent extends OnlineMonitoringAbstractAgent {
 	private Logger logger = LoggerFactory.getLogger(OnlineMonitoringAgent.class);
@@ -35,25 +37,38 @@ public class OnlineMonitoringAgent extends OnlineMonitoringAbstractAgent {
 		if(message == null) return;
 		
 		if(message instanceof DataMessage) {
-			JSONObject json = ((DataMessage)message).convertToJson();
-			json = prepareForSending(json);
+			JSONRPC2Request request = ((DataMessage)message).getJsonRpcRequest();
+			request = prepareForSending(request);
 			try {
-				
-				JSONObject retJson = sendToOnlineMonitoring(json);
-				handleRetJson(retJson);
-			} catch (IOException e) {
-				cacheAgent.sendLater(json);
+				Map<?, ?> response = sendToOnlineMonitoring(request);
+				handleResponse(response);
+			} catch (IOException | JSONRPC2SessionException e) {
+				cacheAgent.sendLater(request);
 			}
 		}
 	}
 	
-	/** Send data */
-	public void sendData(ContentType content, HashMap<String, org.eclipse.smarthome.core.types.State> states, 
-			JSONObject data) {
-		message(new DataMessage(content, states, data));
+	/** Send data, taking current time as timestamp
+	 * 
+	 * be aware, that the states need to be transformed to be valid for JSON/InfluxDB:
+	 * Use FEMSBindingTools.convertStatesForMessage(states)
+	 * @param method
+	 * @param states
+	 * @param params
+	 */
+	 
+	public void sendData(MethodType method, Map<String, Object> states, 
+			Map<String, Object> params) {
+		message(new DataMessage(method, states, params));
 	}
-	public void sendData(ContentType content, HashMap<String, org.eclipse.smarthome.core.types.State> states) {
-		message(new DataMessage(content, states, null));
+	
+	/** be aware, that the states need to be transformed to be valid for JSON/InfluxDB:
+	 * Use FEMSBindingTools.convertStatesForMessage(states)
+	 * @param method
+	 * @param states
+	 */
+	public void sendData(MethodType method, Map<String, Object> states) {
+		message(new DataMessage(method, states, null));
 	}
 	public void sendData(DataMessage message) {
 		message(message);
@@ -65,17 +80,21 @@ public class OnlineMonitoringAgent extends OnlineMonitoringAbstractAgent {
 	}
 	
 	/** Handle return JSON */
-	private void handleRetJson(JSONObject json) {
+	private void handleResponse(Map<?, ?> response) {
+		if(response == null) return;
 		try {
-			// activate or deactivate yaler tunnel
-	    	if(json != null && json.has("yaler")) {
-	    		String relayDomain = json.getString("yaler");
-	    		FEMSYaler.getFEMSYaler().activateTunnel(relayDomain);
-	    	} else {
-	    		FEMSYaler.getFEMSYaler().deactivateTunnel();
-	    	}		
+			if(response.containsKey("yaler") && response.get("yaler") instanceof String) {
+				String relayDomain = (String)response.get("yaler");
+				if(FEMSYaler.getFEMSYaler().activateTunnel(relayDomain)) {
+					this.sendSystemMessage("Yalertunnel is now activated");
+				};
+			} else {
+				if(FEMSYaler.getFEMSYaler().deactivateTunnel()) {
+					this.sendSystemMessage("Yalertunnel is now deactivated");
+				};
+			}
 		} catch (Exception e) {
-			logger.warn("Error handling server command: " + e.getMessage());
+			logger.error("Unable to handle response for yaler: " + e.getMessage());
 		}
 		// TODO: Handle City-ID from Server
     	/*if(json != null && json.has("cityid")) {
@@ -88,10 +107,9 @@ public class OnlineMonitoringAgent extends OnlineMonitoringAbstractAgent {
     	}*/
 	}
 	
-	/** Prepare JSON for sending */
-	protected JSONObject prepareForSending(JSONObject json) {
-		json.put("version", OnlineMonitoringAbstractAgent.PROTOCOL_VERSION);
-		json.put("apikey", apikey);
-		return json;
+	/** Prepare JSONRPC2Request for sending */
+	protected JSONRPC2Request prepareForSending(JSONRPC2Request request) {
+		request.getNamedParams().put("apikey", apikey);
+		return request;
 	}
 }

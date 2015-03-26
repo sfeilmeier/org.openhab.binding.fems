@@ -19,23 +19,25 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Stack;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 
 //TODO: this implementation is based on cache files. A nice implementation would use MapDB
 
 /*
- * Cache JSONObjects in files
+ * Cache JSONRPC2Requests in files
  */
-public class JSONCache {
-	private Logger logger = LoggerFactory.getLogger(JSONCache.class);
+public class JSONRPC2RequestCache {
+	private Logger logger = LoggerFactory.getLogger(JSONRPC2RequestCache.class);
 	
 	private final Stack<Path> stack = new Stack<Path>();
 	private final String cacheFilePrefix = "cache.";
 	private final Charset defaultCharset = StandardCharsets.ISO_8859_1;
 				
-	public JSONCache() {
+	public JSONRPC2RequestCache() {
 		// Load all cached paths on start up
 		try (DirectoryStream<Path> cacheFiles = Files.newDirectoryStream(
 				Paths.get(System.getProperty("user.dir")), cacheFilePrefix + '*')) {
@@ -47,37 +49,37 @@ public class JSONCache {
 		}
 	}
 
-	public JSONObject pop() {
+	public JSONRPC2Request pop() {
 		synchronized (stack) {
 			Path cacheFile = stack.pop();
 	    	String jsonString = "";
-	    	JSONObject jsonObject = null;
+	    	JSONRPC2Request request = null;
 	    	try {
 				for(String line : Files.readAllLines(cacheFile, defaultCharset)) {
 					jsonString += line;
 				}
-				jsonObject = new JSONObject(jsonString);
-			} catch (IOException e1) {
-				e1.printStackTrace();
+				request = JSONRPC2Request.parse(jsonString);
+			} catch (IOException | JSONRPC2ParseException e1) {
+				logger.error("Error reading temporary file " + cacheFile + ": " + e1.getMessage());
 			}
 			try {
 				Files.delete(cacheFile);
 			} catch (IOException e) {
 				logger.error("Could not delete temporary file " + cacheFile + ": " + e.getMessage());
 			}
-			return jsonObject;			
+			return request;			
 		}
 	}
 
-	public void push(JSONObject obj) {
+	public void push(JSONRPC2Request request) {
 		synchronized (stack) {
 			try {
 				File cacheFile = File.createTempFile(cacheFilePrefix, "", Paths.get(System.getProperty("user.dir")).toFile());
 				stack.push(cacheFile.toPath());
-				Files.write(cacheFile.toPath(), obj.toString().getBytes(),
+				Files.write(cacheFile.toPath(), request.toJSONString().getBytes(),
 						StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC);
 			} catch (IOException e) {
-				logger.error("Unable to cache " + obj.toString() + ": " + e.getMessage());
+				logger.error("Unable to cache " + request.toString() + ": " + e.getMessage());
 			}
 		}
 	}

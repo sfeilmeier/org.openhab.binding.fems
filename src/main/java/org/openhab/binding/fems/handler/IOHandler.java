@@ -26,6 +26,7 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.fems.FEMSBindingConstants;
+import org.openhab.binding.fems.internal.FEMSBindingTools;
 import org.openhab.binding.fems.internal.io.IO;
 import org.openhab.binding.fems.internal.io.IOAnalogOutput;
 import org.openhab.binding.fems.internal.io.IOAnalogOutput.DIVIDE;
@@ -36,7 +37,7 @@ import org.openhab.binding.fems.internal.io.IOOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class IOHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(IOHandler.class);
@@ -147,8 +148,8 @@ public class IOHandler extends BaseThingHandler {
 			HashMap<String, State> states = new HashMap<String, State>();
 			states.put(channelUID.getId(), io.getState());
 			FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(
-					ContentType.IO,
-					states);
+					MethodType.IO,
+					FEMSBindingTools.convertStatesForMessage(states));
 		} else {
 			logger.error("This is not an IO Output: " + channelUID.getId());
 		}

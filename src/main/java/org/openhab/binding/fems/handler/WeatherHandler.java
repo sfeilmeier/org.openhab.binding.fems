@@ -29,12 +29,12 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
-import org.json.JSONObject;
 import org.openhab.binding.fems.FEMSBindingConstants;
+import org.openhab.binding.fems.internal.FEMSBindingTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.ContentType;
+import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class WeatherHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(WeatherHandler.class);
@@ -212,8 +212,8 @@ public class WeatherHandler extends BaseThingHandler {
 					OwmClient owm = new OwmClient();
 					owm.setAPPID(appid);
 						
-					JSONObject data = new JSONObject();
-					data.put("cityid", cityid);
+					HashMap<String, Object> params = new HashMap<String, Object>();
+					params.put("cityid", cityid);
 					
 					HashMap<String, State> states = new HashMap<String, State>();
 					// Current weather
@@ -235,7 +235,9 @@ public class WeatherHandler extends BaseThingHandler {
 					}
 					
 					// Send to server
-					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(ContentType.IO, states, data);
+					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(MethodType.IO, 
+							FEMSBindingTools.convertStatesForMessage(states), 
+							params);
 					
 				} catch(Exception e) {
 					logger.error("Exception occurred during execution: {}", e.getMessage());

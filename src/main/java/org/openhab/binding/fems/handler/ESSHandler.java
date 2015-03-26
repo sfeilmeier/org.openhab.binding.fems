@@ -14,6 +14,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +26,6 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
-import org.json.JSONObject;
 import org.openhab.binding.fems.FEMSBindingConstants;
 import org.openhab.binding.fems.internal.essprotocol.ESSProtocol;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
@@ -115,24 +115,22 @@ public abstract class ESSHandler extends BaseThingHandler {
 					}
 					
 					// no error happened: kick the watchdog
-					logger.info("No error: kick Watchdog @ " + new Date().toString());
 				    Runtime.getRuntime().exec("/bin/systemd-notify WATCHDOG=1");
 					
 					// prepare data to be transfered
-					JSONObject moreJson = new JSONObject();
-					moreJson.put("refresh", refresh); // currently set refresh period
+				    HashMap<String, Object> params = new HashMap<String, Object>(); 
 					try {
 						NetworkInterface n = NetworkInterface.getByName("eth0");
 						Enumeration<InetAddress> ee = n.getInetAddresses();
 						while (ee.hasMoreElements()) {
 							InetAddress i = (InetAddress) ee.nextElement();
 							if(i instanceof Inet4Address) {
-								moreJson.put("ipv4", i.getHostAddress()); // local ipv4 address
+								params.put("ipv4", i.getHostAddress()); // local ipv4 address
 					        }
 					    }
 					} catch (SocketException e) { /* no IP-Address - ignore */ }
 					
-					DataMessage message = protocol.getDataMessage();
+					DataMessage message = protocol.getDataMessage(params);
 					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(message);
 					
 		        	totalWaitTime = 0;
