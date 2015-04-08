@@ -235,7 +235,7 @@ public class WeatherHandler extends BaseThingHandler {
 					}
 					
 					// Send to server
-					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(MethodType.IO, 
+					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(MethodType.WEATHER, 
 							FEMSBindingTools.convertStatesForMessage(states), 
 							params);
 					
