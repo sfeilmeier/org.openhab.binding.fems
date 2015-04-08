@@ -34,6 +34,6 @@ public class CESSHandler extends ESSHandler {
 	}
 	
 	protected ESSProtocol getProtocol() {
-		return CESSProtocolFactory.getProtocol(modbusinterface, unitid);
+		return CESSProtocolFactory.getProtocol(modbusDevice, unitid);
 	}
 }

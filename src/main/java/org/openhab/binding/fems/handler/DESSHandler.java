@@ -34,6 +34,6 @@ public class DESSHandler extends ESSHandler {
 	}
 	
 	protected ESSProtocol getProtocol() {
-		return DESSProtocolFactory.getProtocol(modbusinterface, unitid);
+		return DESSProtocolFactory.getProtocol(modbusDevice, unitid);
 	}
 }

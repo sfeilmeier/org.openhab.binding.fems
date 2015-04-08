@@ -17,9 +17,9 @@ import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
 import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class CESSProtocol extends ESSProtocol {
-	public CESSProtocol(String modbusinterface, int unitid,
+	public CESSProtocol(String modbusDevice, int unitid,
 			ArrayList<ModbusElementRange> wordRanges) {
-		super(modbusinterface, unitid, wordRanges);
+		super(modbusDevice, unitid, wordRanges);
 	}
 
 	@Override

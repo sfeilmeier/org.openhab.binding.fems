@@ -18,9 +18,9 @@ import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class DESSProtocol extends ESSProtocol {
 
-	public DESSProtocol(String modbusinterface, int unitid,
+	public DESSProtocol(String modbusDevice, int unitid,
 			ArrayList<ModbusElementRange> wordRanges) {
-		super(modbusinterface, unitid, wordRanges);
+		super(modbusDevice, unitid, wordRanges);
 	}
 
 	@Override

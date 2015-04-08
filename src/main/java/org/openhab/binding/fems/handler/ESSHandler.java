@@ -12,7 +12,6 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -47,7 +46,7 @@ public abstract class ESSHandler extends BaseThingHandler {
 	
 	protected final int refresh = 60; // refresh every minute as default 
 	protected int unitid = 100;
-	protected String modbusinterface = "/dev/ttyUSB0";
+	protected String modbusDevice = "ttyUSB*";
 	protected ESSProtocol protocol;
 	
 	ScheduledFuture<?> refreshJob;
@@ -73,14 +72,6 @@ public abstract class ESSHandler extends BaseThingHandler {
 				unitid = Integer.parseInt(unitidString);
 			}
 			logger.info("Set Unit-ID to " + unitid);
-		} catch(Exception e) { /* let's ignore it and go for the default */ }
-		
-		try {
-			String modbusinterfaceString = (String)config.get("modbusinterface");
-			if(modbusinterfaceString != null) {
-				modbusinterface = modbusinterfaceString;
-			}
-			logger.info("Set Modbus-Interface to " + modbusinterface);
 		} catch(Exception e) { /* let's ignore it and go for the default */ }
 
 		protocol = getProtocol();
@@ -145,6 +136,7 @@ public abstract class ESSHandler extends BaseThingHandler {
 							totalWaitTime = 0;
 						} else {
 							logger.info("Try again in " + waitTime + " seconds");
+							protocol.closeSerialConnection();
 							Thread.sleep((int)(Math.random() * (max - min) + min)*1000);
 							run();
 						}

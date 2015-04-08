@@ -8,6 +8,10 @@
  */
 package org.openhab.binding.fems.internal.essprotocol;
 
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,15 +40,16 @@ import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 public abstract class ESSProtocol {
 	private Logger logger = LoggerFactory.getLogger(ESSProtocol.class);
 	
-	public static volatile SerialConnection serialConnection = null;
+	private static SerialConnection serialConnection = null; // only use within serialConnectionLock synchronized block!
+	private static Object serialConnectionLock = new Object();
 	protected ArrayList<ModbusElementRange> wordRanges;
 	
-	protected String modbusinterface;
+	protected String modbusDevice;
 	protected int unitid;
 	
-    public ESSProtocol(String modbusinterface, int unitid, ArrayList<ModbusElementRange> wordRanges) {
+    public ESSProtocol(String modbusDevice, int unitid, ArrayList<ModbusElementRange> wordRanges) {
 		this.wordRanges = wordRanges;
-		this.modbusinterface = modbusinterface;
+		this.modbusDevice = modbusDevice;
 		this.unitid = unitid;
 	}
     
@@ -52,11 +57,13 @@ public abstract class ESSProtocol {
 		for (ModbusElementRange wordRange : wordRanges) {
 			wordRange.dispose();
 		}
-		if(ESSProtocol.serialConnection!=null) {
-			if(ESSProtocol.serialConnection.isOpen()) {
-				ESSProtocol.serialConnection.close();
-			}
-			ESSProtocol.serialConnection = null;
+		synchronized (serialConnectionLock) {
+			if(serialConnection!=null) {
+				if(serialConnection.isOpen()) {
+					serialConnection.close();
+				}
+				serialConnection = null;
+			}			
 		}
 	}
 	
@@ -64,22 +71,24 @@ public abstract class ESSProtocol {
 		return wordRanges;
 	}
 	
-	public synchronized void updateData() throws Exception {
-		SerialConnection serialConnection = getSerialConnection();
-		for (ModbusElementRange wordRange : wordRanges) {
-			ModbusSerialTransaction trans = wordRange.getModbusSerialTransaction(serialConnection, unitid);
-			trans.setRetries(1);
-			trans.execute();
-			ModbusResponse res = trans.getResponse();
-			
-			if (res instanceof ReadMultipleRegistersResponse) {
-				wordRange.updateData((ReadMultipleRegistersResponse)res);
-	    	} else if (res instanceof ExceptionResponse) {
-	    		throw new Exception("Modbus exception response:" + ((ExceptionResponse)res).getExceptionCode());
-	    	} else {
-	    		throw new Exception("Undefined Modbus response");
-	    	}
-			Thread.sleep(100);
+	public void updateData() throws Exception {
+		SerialConnection serialCon = getSerialConnection();
+		synchronized (serialConnectionLock) {
+			for (ModbusElementRange wordRange : wordRanges) {
+				ModbusSerialTransaction trans = wordRange.getModbusSerialTransaction(serialCon, unitid);
+				trans.setRetries(1);
+				trans.execute();
+				ModbusResponse res = trans.getResponse();
+				
+				if (res instanceof ReadMultipleRegistersResponse) {
+					wordRange.updateData((ReadMultipleRegistersResponse)res);
+		    	} else if (res instanceof ExceptionResponse) {
+		    		throw new Exception("Modbus exception response:" + ((ExceptionResponse)res).getExceptionCode());
+		    	} else {
+		    		throw new Exception("Undefined Modbus response");
+		    	}
+				Thread.sleep(100);
+			}		
 		}
 	}
 	
@@ -105,23 +114,44 @@ public abstract class ESSProtocol {
 				params);
 	}
 	
-	public synchronized SerialConnection getSerialConnection() throws Exception {
-		if(ESSProtocol.serialConnection==null) {
-			SerialParameters params = new SerialParameters();
-			params.setPortName(modbusinterface);
-			params.setBaudRate(getBaudrate());
-			params.setDatabits(8);
-			params.setParity("None");
-			params.setStopbits(1);
-			params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
-			params.setEcho(false);
-			params.setReceiveTimeout(500);
-			ESSProtocol.serialConnection = new SerialConnection(params);
+	public void closeSerialConnection() {
+		synchronized (serialConnectionLock) {
+			if(serialConnection!=null) {
+				serialConnection.close();
+			}
 		}
-		if(!ESSProtocol.serialConnection.isOpen()) {
-			ESSProtocol.serialConnection.open();
+	}
+	
+	public SerialConnection getSerialConnection() throws Exception {
+		synchronized (serialConnectionLock) {
+			if(serialConnection==null) {
+				// find first matching device
+				String portName = "/dev/ttyUSB0"; // if no file found: use default
+				try (DirectoryStream<Path> files = Files.newDirectoryStream(Paths.get("/dev"), modbusDevice)) {
+				    for(Path file : files) {
+				    	portName = file.toAbsolutePath().toString();
+				    	logger.info("Set modbus portname: " + portName);
+				    }
+				} catch(Exception e) {
+					logger.info("Error trying to find " + modbusDevice + ": " + e.getMessage());
+					e.printStackTrace();
+				}
+				SerialParameters params = new SerialParameters();
+				params.setPortName(portName);
+				params.setBaudRate(getBaudrate());
+				params.setDatabits(8);
+				params.setParity("None");
+				params.setStopbits(1);
+				params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
+				params.setEcho(false);
+				params.setReceiveTimeout(500);
+				ESSProtocol.serialConnection = new SerialConnection(params);
+			}
+			if(!ESSProtocol.serialConnection.isOpen()) {
+				ESSProtocol.serialConnection.open();
+			}
+			return serialConnection;
 		}
-		return serialConnection;
 	}
 	
 	protected abstract int getBaudrate();
