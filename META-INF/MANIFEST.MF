@@ -12,7 +12,8 @@ Bundle-ClassPath: .,
  lib/json-20140107.jar,
  lib/jsonrpc2-base-1.36.jar,
  lib/jsonrpc2-client-1.15.jar,
- lib/json-smart-1.2.jar
+ lib/json-smart-1.2.jar,
+ lib/commons-cli-1.2.jar
 Import-Package: com.google.common.collect,
  org.eclipse.smarthome.config.core,
  org.eclipse.smarthome.core.library.types,

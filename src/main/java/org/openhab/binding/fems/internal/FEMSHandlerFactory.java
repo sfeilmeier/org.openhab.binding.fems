@@ -24,12 +24,11 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.openhab.binding.fems.FEMSBindingConstants;
+import org.openhab.binding.fems.Constants;
 import org.openhab.binding.fems.handler.CESSHandler;
 import org.openhab.binding.fems.handler.DESSHandler;
 import org.openhab.binding.fems.handler.IOHandler;
 import org.openhab.binding.fems.handler.WeatherHandler;
-import org.openhab.binding.fems.tools.FEMSDisplayAgent;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
     
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
-        return FEMSBindingConstants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
+        return Constants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
     }
 
     @Override
@@ -53,7 +52,8 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
     	super.activate(componentContext);
     
     	logger.info("Activated FEMS Binding");
-	
+    	Constants.IO_AGENT.start();
+    	
 		// remove old RS485 lock file
 		try {
 			Files.deleteIfExists(Paths.get("/var/lock/LCK..ttyUSB0"));
@@ -73,7 +73,7 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 			while (ee.hasMoreElements()) {
 				InetAddress i = (InetAddress) ee.nextElement();
 				if(i instanceof Inet4Address) {
-					FEMSDisplayAgent.getFEMSDisplay().offer(" " + i.getHostAddress(), false);
+					Constants.IO_AGENT.setLcdText(" " + i.getHostAddress());
 		        }
 		    }
     	} catch (SocketException e) { /* no IP-Address - ignore */ }
@@ -90,29 +90,34 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
 		}
 		
 		// start Agents
-		FEMSBindingConstants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
-		FEMSBindingConstants.ONLINE_MONITORING_AGENT.start();
-		FEMSBindingConstants.ONLINE_MONITORING_CACHE_AGENT.setApikey(properties.getProperty("apikey"));
-		FEMSBindingConstants.ONLINE_MONITORING_CACHE_AGENT.start();
+		Constants.ONLINE_MONITORING_AGENT.setApikey(properties.getProperty("apikey"));
+		Constants.ONLINE_MONITORING_AGENT.start();
+		Constants.ONLINE_MONITORING_CACHE_AGENT.setApikey(properties.getProperty("apikey"));
+		Constants.ONLINE_MONITORING_CACHE_AGENT.start();		
 		
 		// send init message to FEMS Online-Monitoring
-		FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendSystemMessage("openHAB started");
+		Constants.ONLINE_MONITORING_AGENT.sendSystemMessage("openHAB started");
 	};
 
 	@Override
     protected ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(FEMSBindingConstants.THING_TYPE_CESS)) {
+        if (thingTypeUID.equals(Constants.THING_TYPE_CESS)) {
             return new CESSHandler(thing);
-        } else if (thingTypeUID.equals(FEMSBindingConstants.THING_TYPE_DESS)) {
+        } else if (thingTypeUID.equals(Constants.THING_TYPE_DESS)) {
         	return new DESSHandler(thing);
-        } else if (thingTypeUID.equals(FEMSBindingConstants.THING_TYPE_WEATHER)) {
+        } else if (thingTypeUID.equals(Constants.THING_TYPE_WEATHER)) {
         	return new WeatherHandler(thing);
-        } else if (thingTypeUID.equals(FEMSBindingConstants.THING_TYPE_IO)) {
-        	return new IOHandler(thing);
+        } else if (thingTypeUID.equals(Constants.THING_TYPE_IO)) {
+        	logger.info("new listener");
+        	IOHandler ioHandler = new IOHandler(thing);
+        	Constants.IO_AGENT.addListener(ioHandler);
+        	return ioHandler;
         }
         return null;
     }
+	
+	// TODO: implement unregister methods, so that we don't need to restart completely all the time
 }
 

@@ -20,6 +20,10 @@
 			<channel id="AnalogOutput_2" typeId="AnalogOutput_2" />
 			<channel id="AnalogOutput_3" typeId="AnalogOutput_3" />
 			<channel id="AnalogOutput_4" typeId="AnalogOutput_4" />
+			<channel id="AnalogOutput_1_Volt" typeId="AnalogOutput_1_Volt" />
+			<channel id="AnalogOutput_2_Volt" typeId="AnalogOutput_2_Volt" />
+			<channel id="AnalogOutput_3_Volt" typeId="AnalogOutput_3_Volt" />
+			<channel id="AnalogOutput_4_Volt" typeId="AnalogOutput_4_Volt" />
 			
 			<channel id="DigitalInput_1" typeId="DigitalInput_1" />
 			<channel id="DigitalInput_2" typeId="DigitalInput_2" />
@@ -40,6 +44,10 @@
 	<channel-type id="AnalogOutput_2"><item-type>Dimmer</item-type><label>Analog Output 2</label></channel-type>
 	<channel-type id="AnalogOutput_3"><item-type>Dimmer</item-type><label>Analog Output 3</label></channel-type>
 	<channel-type id="AnalogOutput_4"><item-type>Dimmer</item-type><label>Analog Output 4</label></channel-type>
+	<channel-type id="AnalogOutput_1_Volt"><item-type>Switch</item-type><label>Analog Output 1 Volt</label></channel-type>
+	<channel-type id="AnalogOutput_2_Volt"><item-type>Switch</item-type><label>Analog Output 2 Volt</label></channel-type>
+	<channel-type id="AnalogOutput_3_Volt"><item-type>Switch</item-type><label>Analog Output 3 Volt</label></channel-type>
+	<channel-type id="AnalogOutput_4_Volt"><item-type>Switch</item-type><label>Analog Output 4 Volt</label></channel-type>
 	
 	<channel-type id="DigitalInput_1"><item-type>Contact</item-type><label>Digital Input 1</label></channel-type>
 	<channel-type id="DigitalInput_2"><item-type>Contact</item-type><label>Digital Input 2</label></channel-type>

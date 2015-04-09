@@ -25,17 +25,16 @@ import net.wimpi.modbus.net.SerialConnection;
 import net.wimpi.modbus.util.SerialParameters;
 
 import org.eclipse.smarthome.core.types.State;
-import org.openhab.binding.fems.internal.FEMSBindingTools;
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage;
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage.MethodType;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusItem;
 import org.openhab.binding.fems.internal.essprotocol.modbus.OnOffBitItem;
+import org.openhab.binding.fems.tools.Tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public abstract class ESSProtocol {
 	private Logger logger = LoggerFactory.getLogger(ESSProtocol.class);
@@ -110,7 +109,7 @@ public abstract class ESSProtocol {
 			}
 		}
 		return new DataMessage(contentType, 
-				FEMSBindingTools.convertStatesForMessage(states), 
+				Tools.convertStatesForMessage(states), 
 				params);
 	}
 	

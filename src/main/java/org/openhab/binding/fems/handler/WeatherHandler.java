@@ -29,12 +29,11 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
-import org.openhab.binding.fems.FEMSBindingConstants;
-import org.openhab.binding.fems.internal.FEMSBindingTools;
+import org.openhab.binding.fems.Constants;
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage.MethodType;
+import org.openhab.binding.fems.tools.Tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class WeatherHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(WeatherHandler.class);
@@ -235,8 +234,8 @@ public class WeatherHandler extends BaseThingHandler {
 					}
 					
 					// Send to server
-					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(MethodType.WEATHER, 
-							FEMSBindingTools.convertStatesForMessage(states), 
+					Constants.ONLINE_MONITORING_AGENT.sendData(MethodType.WEATHER, 
+							Tools.convertStatesForMessage(states), 
 							params);
 					
 				} catch(Exception e) {

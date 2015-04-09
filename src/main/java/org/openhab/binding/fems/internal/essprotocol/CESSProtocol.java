@@ -11,10 +11,9 @@ package org.openhab.binding.fems.internal.essprotocol;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage;
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage.MethodType;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
-
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage.MethodType;
 
 public class CESSProtocol extends ESSProtocol {
 	public CESSProtocol(String modbusDevice, int unitid,

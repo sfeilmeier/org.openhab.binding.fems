@@ -25,7 +25,8 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
-import org.openhab.binding.fems.FEMSBindingConstants;
+import org.openhab.binding.fems.Constants;
+import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage;
 import org.openhab.binding.fems.internal.essprotocol.ESSProtocol;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElement;
@@ -34,8 +35,6 @@ import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusItem;
 import org.openhab.binding.fems.internal.essprotocol.modbus.OnOffBitItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.fenecon.fems.agents.OnlineMonitoring.Message.DataMessage;
 
 public abstract class ESSHandler extends BaseThingHandler {
 	private Logger logger = LoggerFactory.getLogger(ESSHandler.class);
@@ -122,7 +121,7 @@ public abstract class ESSHandler extends BaseThingHandler {
 					} catch (SocketException e) { /* no IP-Address - ignore */ }
 					
 					DataMessage message = protocol.getDataMessage(params);
-					FEMSBindingConstants.ONLINE_MONITORING_AGENT.sendData(message);
+					Constants.ONLINE_MONITORING_AGENT.sendData(message);
 					
 		        	totalWaitTime = 0;
 				} catch(ModbusException e) {
