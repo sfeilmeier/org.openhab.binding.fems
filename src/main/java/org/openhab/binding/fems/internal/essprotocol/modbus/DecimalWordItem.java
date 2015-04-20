@@ -10,14 +10,12 @@ package org.openhab.binding.fems.internal.essprotocol.modbus;
 
 import java.math.BigDecimal;
 
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.wimpi.modbus.procimg.Register;
 
+import org.eclipse.smarthome.core.library.types.DecimalType;
+
 public class DecimalWordItem extends ModbusItem implements ModbusWordElement {
-	private Logger logger = LoggerFactory.getLogger(DecimalWordItem.class);
+	//private Logger logger = LoggerFactory.getLogger(DecimalWordItem.class);
 	private double multiplier = 1.;
 	private int delta = 0;
 	

@@ -11,14 +11,12 @@ package org.openhab.binding.fems.internal.essprotocol.modbus;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.wimpi.modbus.procimg.Register;
 
+import org.eclipse.smarthome.core.library.types.DecimalType;
+
 public class DecimalDoublewordItem extends ModbusItem implements ModbusDoublewordElement {
-	private Logger logger = LoggerFactory.getLogger(DecimalDoublewordItem.class);
+	//private Logger logger = LoggerFactory.getLogger(DecimalDoublewordItem.class);
 	
 	public DecimalDoublewordItem(String name) {
 		super(name);

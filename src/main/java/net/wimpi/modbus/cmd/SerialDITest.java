@@ -109,7 +109,6 @@ public class SerialDITest {
         res = (ReadInputDiscretesResponse) trans.getResponse();
         if (Modbus.debug) System.out.println("Response: " + res.getHexMessage());
         BitVector inputs = res.getDiscretes();
-        byte ret[] = new byte[inputs.size()];
         for (int i = 0; i < count; i++) {
           System.out.println("Bit " + i + " = " + inputs.getBit(i));
         }

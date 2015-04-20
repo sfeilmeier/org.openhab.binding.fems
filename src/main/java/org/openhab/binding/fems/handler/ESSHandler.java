@@ -62,7 +62,6 @@ public abstract class ESSHandler extends BaseThingHandler {
 	
 	@Override
 	public void initialize() {	
-		logger.info("initialize");
 		// Read configuration
 		Configuration config = getThing().getConfiguration();	
 		try {
@@ -76,7 +75,6 @@ public abstract class ESSHandler extends BaseThingHandler {
 		protocol = getProtocol();
 		
 		// Start refresh service
-		logger.info("startAutomaticRefresh");
 		startAutomaticRefresh();
 		
 		super.initialize();
@@ -92,12 +90,11 @@ public abstract class ESSHandler extends BaseThingHandler {
 						for (ModbusElement word : wordRange.getWords()) {
 							if(word instanceof ModbusItem) {
 								ModbusItem item = (ModbusItem)word;
-//								logger.info("Number " + item.getName());
 								updateState(new ChannelUID(getThing().getUID(), item.getName()), item.getState());
 							} else if (word instanceof BitWordElement) {
 								BitWordElement bitWord = (BitWordElement)word;
 								for (OnOffBitItem bitItem : bitWord.getBitItems()) {
-//									logger.info("Switch " + bitWord.getName() + "_" + bitItem.getName());
+									// logger.info("Switch " + bitWord.getName() + "_" + bitItem.getName());
 									updateState(new ChannelUID(getThing().getUID(), bitWord.getName() + "_" + bitItem.getName()), bitItem.getState());
 								} 
 							}

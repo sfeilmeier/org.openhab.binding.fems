@@ -11,8 +11,8 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.fems.Constants;
 
 public class IOLcdBacklight extends IOAnalogOutput {
-	public final static double BACKLIGHT_MAX_VALUE = 0.70;
-	public final static double BACKLIGHT_MIN_VALUE = 0.20;
+	public final static float BACKLIGHT_MAX_VALUE = 0.70f;
+	public final static float BACKLIGHT_MIN_VALUE = 0.20f;
 	public final static int BACKLIGHT_SECONDS = 120;
 	private final String myId;
 	
@@ -36,7 +36,7 @@ public class IOLcdBacklight extends IOAnalogOutput {
 	}
 	
 	@Override
-	protected void setAnalogOutput(double duty) {
+	protected void setAnalogOutput(float duty) {
 		if(duty > BACKLIGHT_MAX_VALUE) {
 			duty = BACKLIGHT_MAX_VALUE;
 		} else if(duty < BACKLIGHT_MIN_VALUE) {

@@ -7,9 +7,7 @@ import org.openhab.binding.fems.Constants;
 
 public class IOLcdRow implements IOOutput {
 	private final int row;
-	
 	private final IOLcd lcd;
-	private StringType value = new StringType("");
 	
 	public IOLcdRow(IOLcd lcd, String id) {
 		this.lcd = lcd;
@@ -26,7 +24,11 @@ public class IOLcdRow implements IOOutput {
 	
 	@Override
 	public State getState() {
-		return value;
+		if(row == 0) {
+			return new StringType(lcd.getFirstRow());
+		} else {
+			return new StringType(lcd.getSecondRow());
+		}
 	}
 
 	@Override

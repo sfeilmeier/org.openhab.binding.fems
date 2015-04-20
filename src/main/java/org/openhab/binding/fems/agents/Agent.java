@@ -11,6 +11,8 @@ package org.openhab.binding.fems.agents;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.openhab.binding.fems.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +79,15 @@ public abstract class Agent extends Thread {
 			} catch (InterruptedException e) {	
 				logger.debug("ForeverLoop interrupted");
 				handle(new InterruptMessage());
+			} catch (Exception e) {
+				logger.info("Agent Exception: " + e.getMessage());
+				e.printStackTrace();
+				Constants.ONLINE_MONITORING_AGENT.sendSystemMessage("Agent Exception: " + e.getMessage() + "\n\n" + ExceptionUtils.getStackTrace(e));
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					handle(new InterruptMessage());
+				}
 			}
 		}
 		dispose();

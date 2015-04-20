@@ -55,8 +55,6 @@ public class UDPDOTest {
     int ref = 0;
     boolean set = false;
     int repeat = 1;
-    int port = Modbus.DEFAULT_PORT;
-
     try {
 
       //1. Setup the parameters
@@ -68,7 +66,6 @@ public class UDPDOTest {
           String astr = args[0];
           int idx = astr.indexOf(':');
           if(idx > 0) {
-            port = Integer.parseInt(astr.substring(idx+1));
             astr = astr.substring(0,idx);
           }
           addr = InetAddress.getByName(astr);

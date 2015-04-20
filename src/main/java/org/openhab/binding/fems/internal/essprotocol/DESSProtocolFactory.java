@@ -816,6 +816,8 @@ public class DESSProtocolFactory {
 		return new DESSProtocol(modbusinterface, unitid, wordRanges);
 	}
 	
+	// TODO: use BECU information
+	@SuppressWarnings("unused")
 	private static ArrayList<ModbusElementRange> getBECUCorrespondingInformation(int batteryGroup, int offset) {
 		ArrayList<ModbusElementRange> wordRanges = new ArrayList<ModbusElementRange>();
 		wordRanges.add(	new ModbusElementRange(10180 + offset,

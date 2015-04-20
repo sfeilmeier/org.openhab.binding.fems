@@ -37,13 +37,10 @@ class UDPSlaveTerminal
 
   //instance attributes
   private DatagramSocket m_Socket;
-  private int m_Timeout = Modbus.DEFAULT_TIMEOUT;
   private boolean m_Active;
   protected InetAddress m_LocalAddress;
   private int m_LocalPort = Modbus.DEFAULT_PORT;
   protected ModbusUDPTransport m_ModbusTransport;
-  private int m_Retries = Modbus.DEFAULT_RETRIES;
-
   private LinkedQueue m_SendQueue;
   private LinkedQueue m_ReceiveQueue;
   private PacketSender m_PacketSender;
@@ -51,13 +48,13 @@ class UDPSlaveTerminal
   private Thread m_Receiver;
   private Thread m_Sender;
 
-  protected Hashtable m_Requests;
+  protected Hashtable<Integer, DatagramPacket> m_Requests;
 
   protected UDPSlaveTerminal() {
     m_SendQueue = new LinkedQueue();
     m_ReceiveQueue = new LinkedQueue();
     //m_Requests = new Hashtable(342,0.75F);
-    m_Requests = new Hashtable(342);
+    m_Requests = new Hashtable<Integer, DatagramPacket>(342);
   }//constructor
 
   protected UDPSlaveTerminal(InetAddress localaddress) {
@@ -65,7 +62,7 @@ class UDPSlaveTerminal
     m_SendQueue = new LinkedQueue();
     m_ReceiveQueue = new LinkedQueue();
     //m_Requests = new Hashtable(342, 0.75F);
-    m_Requests = new Hashtable(342);
+    m_Requests = new Hashtable<Integer, DatagramPacket>(342);
   }//constructor
 
   public InetAddress getLocalAddress() {
@@ -241,7 +238,7 @@ class UDPSlaveTerminal
           m_Socket.send(res);
           if (Modbus.debug) System.out.println("Sent package from queue.");
         } catch (Exception ex) {
-          DEBUG:ex.printStackTrace();
+          ex.printStackTrace();
         }
       } while (m_Continue || !m_SendQueue.isEmpty());
     }//run
@@ -275,7 +272,7 @@ class UDPSlaveTerminal
           m_ReceiveQueue.put(buffer);
           if (Modbus.debug) System.out.println("Received package to queue.");
         } catch (Exception ex) {
-          DEBUG:ex.printStackTrace();
+          ex.printStackTrace();
         }
       } while (m_Continue);
     }//run

@@ -9,17 +9,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.bulldog.beagleboneblack.BBBNames;
-import org.bulldog.core.Edge;
 import org.bulldog.core.gpio.DigitalIO;
-import org.bulldog.core.gpio.DigitalInput;
 import org.bulldog.core.gpio.DigitalOutput;
 import org.bulldog.core.gpio.Pwm;
-import org.bulldog.core.gpio.event.InterruptEventArgs;
-import org.bulldog.core.gpio.event.InterruptListener;
 import org.bulldog.core.platform.Board;
 import org.bulldog.core.platform.Platform;
 import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.OpenClosedType;
 import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.fems.Constants;
@@ -33,7 +28,6 @@ import org.openhab.binding.fems.agents.io.message.UpdateLcdTimeMessage;
 import org.openhab.binding.fems.agents.io.types.IO;
 import org.openhab.binding.fems.agents.io.types.IOAnalogOutput;
 import org.openhab.binding.fems.agents.io.types.IOAnalogOutputCtrlVolt;
-import org.openhab.binding.fems.agents.io.types.IODigitalInput;
 import org.openhab.binding.fems.agents.io.types.IODigitalOutput;
 import org.openhab.binding.fems.agents.io.types.IOLcd;
 import org.openhab.binding.fems.agents.io.types.IOLcdBacklight;
@@ -52,20 +46,23 @@ public class IOAgent extends Agent {
 	private final Logger logger = LoggerFactory.getLogger(IOAgent.class);
 	private IOLcd lcd = null;
 	
-	private class DigitalInputInterrupt implements InterruptListener {
-		private String id;
-		public DigitalInputInterrupt(String id) {
+	/*private class DigitalInputInterrupt implements InterruptListener {
+		private final String id;
+		private final IODigitalInput io;
+		public DigitalInputInterrupt(String id, IODigitalInput io) {
 			this.id = id;
+			this.io = io;
 		}
 		@Override
 		public void interruptRequest(InterruptEventArgs args) {
-			if(args.getEdge() == Edge.Rising) {
-				updateState(id, OpenClosedType.OPEN);
-			} else {
-				updateState(id, OpenClosedType.CLOSED);
-			}
+			updateState(id, io);
+			//if(args.getEdge() == Edge.Rising) {
+			//	updateState(id, OpenClosedType.OPEN);
+			//} else {
+			//	updateState(id, OpenClosedType.CLOSED);
+			//}
 		}
-	};
+	}; */
 	
 	/**
 	 * {@inheritDoc}
@@ -75,13 +72,14 @@ public class IOAgent extends Agent {
 	}
 	
 	@Override
-	public void foreverLoop(Message message) throws InterruptedException {	
+	public void foreverLoop(Message message) {	
 		if(message instanceof ListenerMessage) {
 			IOAgentListener listener = ((ListenerMessage)message).getListener();
 			listeners.add(listener);
-			for (String id : ios.keySet()) {
+			/*Causes java.lang.IllegalStateException
+			 * for (String id : ios.keySet()) {
 				listener.ioUpdate(id, ios.get(id).getState());
-			}
+			}*/
 			// try again in a few seconds, because on startup it might not work directly:
 			Executors.newScheduledThreadPool(1).schedule(new Runnable() {
 				@Override
@@ -97,16 +95,7 @@ public class IOAgent extends Agent {
 				IO io = ios.get(m.getId());
 				if(io instanceof IOOutput) {
 					((IOOutput)io).handleCommand(m.getCommand());
-					org.eclipse.smarthome.core.types.State state = io.getState();
-					updateState(m.getId(), state);	
-					
-					if(io.sendToOnlineMonitoring()) {
-						Map<String, org.eclipse.smarthome.core.types.State> states = new HashMap<String, org.eclipse.smarthome.core.types.State>();
-						states.put(m.getId(), state);
-						Constants.ONLINE_MONITORING_AGENT.sendData(
-							MethodType.IO,
-							Tools.convertStatesForMessage(states));	
-					}
+					updateState(m.getId(), io);
 				} else {
 					logger.warn("IO interface is not an Output: " + m.getCommand());
 				}
@@ -132,7 +121,6 @@ public class IOAgent extends Agent {
 	 * Initialize IOs
 	 */
 	public void init() {
-		logger.debug("Initialize FEMS IOs");
 		ios = new HashMap<String, IO>();
 		synchronized (BBB) {
 			// LCD Display
@@ -169,42 +157,57 @@ public class IOAgent extends Agent {
 			aovs.put(Constants.AnalogOutput_3_Volt, new IOAnalogOutputCtrlVolt(BBB.getPin(BBBNames.P9_30).as(DigitalOutput.class), OnOffType.ON));
 			aovs.put(Constants.AnalogOutput_4_Volt, new IOAnalogOutputCtrlVolt(BBB.getPin(BBBNames.P9_31).as(DigitalOutput.class), OnOffType.ON));
 			ios.putAll(aovs);
+
+			try {
+				ios.put(Constants.AnalogOutput_1, new IOAnalogOutput(
+						BBB.getPin(BBBNames.EHRPWM1A_P9_14).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_1_Volt)));
+			} catch (RuntimeException e) { logger.error(e.getMessage()); }
 			
-			ios.put(Constants.AnalogOutput_1, new IOAnalogOutput(
-					BBB.getPin(BBBNames.EHRPWM1A_P9_14).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_1_Volt)));
-			ios.put(Constants.AnalogOutput_2, new IOAnalogOutput(
-					BBB.getPin(BBBNames.EHRPWM1B_P9_16).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_2_Volt)));
-			ios.put(Constants.AnalogOutput_3, new IOAnalogOutput(
-					BBB.getPin(BBBNames.EHRPWM2A_P8_19).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_3_Volt)));
-			ios.put(Constants.AnalogOutput_4, new IOAnalogOutput(
-					BBB.getPin(BBBNames.EHRPWM2B_P8_13).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_4_Volt)));		
+			try {
+				ios.put(Constants.AnalogOutput_2, new IOAnalogOutput(
+						BBB.getPin(BBBNames.EHRPWM1B_P9_16).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_2_Volt)));
+			} catch (RuntimeException e) { logger.error(e.getMessage()); }
+			try {
+				ios.put(Constants.AnalogOutput_3, new IOAnalogOutput(
+						BBB.getPin(BBBNames.EHRPWM2A_P8_19).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_3_Volt)));
+			} catch (RuntimeException e) { logger.error(e.getMessage()); }
+			try {
+				ios.put(Constants.AnalogOutput_4, new IOAnalogOutput(
+					BBB.getPin(BBBNames.EHRPWM2B_P8_13).as(Pwm.class), OnOffType.OFF, aovs.get(Constants.AnalogOutput_4_Volt)));
+			} catch (RuntimeException e) { logger.error(e.getMessage()); }
 			
+			/* TODO: Deactivated for now, because it's causing "epoll failed! Interrupted system call"
 			// Digital Inputs
 			DigitalInput di1 = BBB.getPin(BBBNames.P9_42).as(DigitalInput.class);
-			di1.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_1));
+			IODigitalInput dio1 = new IODigitalInput(di1);
+			di1.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_1, dio1));
 			di1.enableInterrupts();
-			ios.put(Constants.DigitalInput_1, new IODigitalInput(di1));
+			ios.put(Constants.DigitalInput_1, dio1);
 
 			DigitalInput di2 = BBB.getPin(BBBNames.P9_27).as(DigitalInput.class);
-			di2.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_2));
+			IODigitalInput dio2 = new IODigitalInput(di2);
+			di2.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_2, dio2));
 			di2.enableInterrupts();
-			ios.put(Constants.DigitalInput_2, new IODigitalInput(di2));
+			ios.put(Constants.DigitalInput_2, dio2);
 			
 			DigitalInput di3 = BBB.getPin(BBBNames.P9_41).as(DigitalInput.class);
-			di3.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_3));
+			IODigitalInput dio3 = new IODigitalInput(di3);
+			di3.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_3, dio3));
 			di3.enableInterrupts();
-			ios.put(Constants.DigitalInput_3, new IODigitalInput(di3));
+			ios.put(Constants.DigitalInput_3, dio3);
 			
 			DigitalInput di4 = BBB.getPin(BBBNames.P9_25).as(DigitalInput.class);
-			di4.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_4));
+			IODigitalInput dio4 = new IODigitalInput(di4);
+			di4.addInterruptListener(new DigitalInputInterrupt(Constants.DigitalInput_4, dio4));
 			di4.enableInterrupts();
-			ios.put(Constants.DigitalInput_4, new IODigitalInput(di4));
+			ios.put(Constants.DigitalInput_4, dio4);
+			*/
 			
 			// TODO: Analogue Inputs
 
 			// update all states (but actually no listener is registered till now most likely)
 			for (Entry<String, IO> entry : ios.entrySet()) {
-				updateState(entry.getKey(), entry.getValue().getState());
+				updateState(entry.getKey(), entry.getValue());
 			}
 		}
 	}
@@ -214,17 +217,25 @@ public class IOAgent extends Agent {
 		// dispose all IOs
 		for (Entry<String, IO> entry : ios.entrySet()) {
 			entry.getValue().dispose();
-			updateState(entry.getKey(), entry.getValue().getState());
+			updateState(entry.getKey(), entry.getValue());
 		}
 		// dispose lcd
 		if(lcd != null) lcd.dispose();
 		super.dispose();
 	}
 	
-	private void updateState(String id, org.eclipse.smarthome.core.types.State state) {
+	private void updateState(String id, IO io) {
+		org.eclipse.smarthome.core.types.State state = io.getState();
+		if(io.sendToOnlineMonitoring()) {
+			Map<String, org.eclipse.smarthome.core.types.State> states = new HashMap<String, org.eclipse.smarthome.core.types.State>();
+			states.put(id, state);
+			Constants.ONLINE_MONITORING_AGENT.sendData(
+				MethodType.IO,
+				Tools.convertStatesForMessage(states));	
+		}
 		for(IOAgentListener listener : listeners) {
 			listener.ioUpdate(id, state);
-		}		
+		}
 	}
 
 	public void addListener(IOAgentListener listener) {

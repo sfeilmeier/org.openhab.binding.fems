@@ -22,7 +22,6 @@ import net.wimpi.modbus.io.ModbusTCPTransaction;
 import net.wimpi.modbus.io.ModbusTransaction;
 import net.wimpi.modbus.msg.ModbusRequest;
 import net.wimpi.modbus.msg.WriteSingleRegisterRequest;
-import net.wimpi.modbus.msg.ReadMultipleRegistersRequest;
 import net.wimpi.modbus.net.TCPMasterConnection;
 import net.wimpi.modbus.procimg.SimpleRegister;
 import net.wimpi.modbus.Modbus;

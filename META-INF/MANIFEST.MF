@@ -27,7 +27,7 @@ Import-Package: com.google.common.collect,
  org.jupnp.model.types,
  org.osgi.service.component,
  org.slf4j
-Service-Component: OSGI-INF/*
+Service-Component: OSGI-INF/*.xml
 Export-Package: org.openhab.binding.fems,
  org.openhab.binding.fems.handler
 Require-Bundle: org.apache.commons.lang;bundle-version="2.6.0",

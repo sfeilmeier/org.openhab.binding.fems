@@ -14,10 +14,12 @@ import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IOAnalogOutput implements IOOutput {
-	//private Logger logger = LoggerFactory.getLogger(IOAnalogOutput.class);	
-	public static final double FREQUENCY = 5000; // 5 kHz
+	private final Logger logger = LoggerFactory.getLogger(IOAnalogOutput.class);	
+	public static final float FREQUENCY = 5000.0f; // 5 kHz
 	
 	private Pwm pwmPin;
 	private IOAnalogOutputCtrlVolt ctrlVolt;
@@ -81,14 +83,19 @@ public class IOAnalogOutput implements IOOutput {
 		}	
 	}
 	
-	private double toDuty(PercentType percent) {
-		return(percent.doubleValue() / 100);
+	private float toDuty(PercentType percent) {
+		return(percent.floatValue() / 100);
 	}
 	
-	protected void setAnalogOutput(double duty) {
-		pwmPin.setFrequency(FREQUENCY);
-		pwmPin.setDuty(duty);
-		pwmPin.enable();		
+	protected void setAnalogOutput(float duty) {
+		try {
+			pwmPin.setFrequency(FREQUENCY);
+			pwmPin.setDuty(duty);
+			pwmPin.enable();
+			
+		} catch (RuntimeException e) {
+			logger.error("AnalogOutput failed: " + e.getMessage());
+		}
 	}
 
 	@Override

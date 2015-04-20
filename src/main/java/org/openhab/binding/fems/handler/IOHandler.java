@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IOHandler extends BaseThingHandler implements IOAgentListener {
+	@SuppressWarnings("unused")
 	private Logger logger = LoggerFactory.getLogger(IOHandler.class);
 	
 	public IOHandler(Thing thing) {
@@ -37,7 +38,6 @@ public class IOHandler extends BaseThingHandler implements IOAgentListener {
 	
 	@Override
 	public void handleUpdate(ChannelUID channelUID, State newState) {
-		logger.info("handleUpdate " + channelUID.toString() + newState.toString());
 		super.handleUpdate(channelUID, newState);
 	}
 

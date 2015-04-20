@@ -110,7 +110,6 @@ public class FEMSHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(Constants.THING_TYPE_WEATHER)) {
         	return new WeatherHandler(thing);
         } else if (thingTypeUID.equals(Constants.THING_TYPE_IO)) {
-        	logger.info("new listener");
         	IOHandler ioHandler = new IOHandler(thing);
         	Constants.IO_AGENT.addListener(ioHandler);
         	return ioHandler;

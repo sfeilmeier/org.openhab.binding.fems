@@ -27,7 +27,8 @@ package net.wimpi.modbus;
 public class ModbusIOException
     extends ModbusException {
 
-  private boolean m_EOF = false;
+	private static final long serialVersionUID = 5673322140119572831L;
+private boolean m_EOF = false;
 
   /**
    * Constructs a new <tt>ModbusIOException</tt>

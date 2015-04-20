@@ -94,4 +94,12 @@ public class IOLcd {
 		}
 		lcd.clear();
 	}
+	
+	public String getFirstRow() {
+		return firstRow;
+	}
+	
+	public String getSecondRow() {
+		return secondRow;
+	}
 }

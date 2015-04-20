@@ -25,8 +25,9 @@ package net.wimpi.modbus;
  */
 public class ModbusException
     extends Exception {
+	private static final long serialVersionUID = -6026086884940005759L;
 
-  /**
+/**
    * Constructs a new <tt>ModbusException</tt>
    * instance.
    */

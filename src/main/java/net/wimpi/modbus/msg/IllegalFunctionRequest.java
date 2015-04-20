@@ -17,9 +17,7 @@
 package net.wimpi.modbus.msg;
 
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.DataOutput;
-import java.io.EOFException;
 import java.io.IOException;
 
 import net.wimpi.modbus.Modbus;
@@ -35,34 +33,34 @@ import net.wimpi.modbus.Modbus;
  * @version @version@ (@date@)
  */
 public class IllegalFunctionRequest
-    extends ModbusRequest {
+extends ModbusRequest {
 
-  /**
-   * Constructs a new <tt>IllegalFunctionRequest</tt> instance for
-   * a given function code.
-   *
-   * @param fc the function code as <tt>int</tt>.
-   */
-  public IllegalFunctionRequest(int fc) {
-    setFunctionCode(fc);
-  }//constructor
+	/**
+	 * Constructs a new <tt>IllegalFunctionRequest</tt> instance for
+	 * a given function code.
+	 *
+	 * @param fc the function code as <tt>int</tt>.
+	 */
+	public IllegalFunctionRequest(int fc) {
+		setFunctionCode(fc);
+	}//constructor
 
-  public ModbusResponse createResponse() {
-    return this.createExceptionResponse(Modbus.ILLEGAL_FUNCTION_EXCEPTION);
-  }//createResponse
+	public ModbusResponse createResponse() {
+		return this.createExceptionResponse(Modbus.ILLEGAL_FUNCTION_EXCEPTION);
+	}//createResponse
 
-  public void writeData(DataOutput dout)
-      throws IOException {
-    throw new RuntimeException();
-  }//writeData
+	public void writeData(DataOutput dout)
+			throws IOException {
+		throw new RuntimeException();
+	}//writeData
 
-  public void readData(DataInput din)
-      throws IOException {
-    //skip all following bytes
-    int length = getDataLength();
-    for (int i = 0; i < length; i++) {
-      din.readByte();
-    }
-  }//readData
+	public void readData(DataInput din)
+			throws IOException {
+		//skip all following bytes
+		int length = getDataLength();
+		for (int i = 0; i < length; i++) {
+			din.readByte();
+		}
+	}//readData
 
 }//IllegalFunctionRequest
