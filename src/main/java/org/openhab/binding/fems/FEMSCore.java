@@ -86,6 +86,7 @@ public class FEMSCore {
 		options.addOption(null, "aout", true, "Set Analog Output: ID,%");
 		options.addOption(null, "lcd-text", true, "Set LCD-Text");
 		options.addOption(null, "lcd-backlight", true, "Set LCD-Backlight in %");
+		options.addOption(null, "rs485", false, "Test RS485 connection");
 		options.addOption("d", "debug", false, "Enable debug logging");
 		
 		CommandLineParser parser = new GnuParser();
@@ -101,6 +102,8 @@ public class FEMSCore {
 				init();
 			} else if (args.length == 0) {
 				help(options);
+			} else if (cmd.hasOption("rs485")) {
+				testRs485();
 			} else {
 				// start IO Agent
 				Constants.IO_AGENT.start();
@@ -125,7 +128,7 @@ public class FEMSCore {
 		
 		System.exit(0);
 	}
-	
+
 	private static String logText = null;
 	private static void logInfo(String text) {
 		System.out.println(text);
@@ -213,7 +216,8 @@ public class FEMSCore {
 		params.setStopbits(1);
 		params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
 		params.setEcho(false);
-		params.setReceiveTimeout(500);
+		params.setReceiveTimeout(Constants.MODBUS_TIMEOUT);
+		logInfo("Timeout: " + params.getReceiveTimeout());
 		SerialConnection serialConnection = new SerialConnection(params);
 		try {
 			serialConnection.open();
@@ -484,4 +488,14 @@ public class FEMSCore {
 		logInfo("LCD-Brightness: " + percent + " %");
 		Constants.IO_AGENT.handleCommand("LCD_Backlight", new PercentType(percent));
 	}	
+	
+	/** Test RS485 connection to storage system
+	 */
+	private static void testRs485() {
+		if(isModbusWorking(ess)) {
+			logInfo("RS485-Modbus connection to " + ess + "-system is working");
+		} else {
+			logInfo("RS485-Modbus connection to " + ess + "-system is NOT working");
+		}
+	}
 }

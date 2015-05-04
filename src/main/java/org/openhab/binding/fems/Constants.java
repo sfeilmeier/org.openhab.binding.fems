@@ -74,4 +74,6 @@ public class Constants {
 	public final static String DigitalInput_2 = "DigitalInput_2";
 	public final static String DigitalInput_3 = "DigitalInput_3";
 	public final static String DigitalInput_4 = "DigitalInput_4";
+	
+	public final static int MODBUS_TIMEOUT = 5000;
 }

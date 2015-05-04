@@ -25,6 +25,7 @@ import net.wimpi.modbus.net.SerialConnection;
 import net.wimpi.modbus.util.SerialParameters;
 
 import org.eclipse.smarthome.core.types.State;
+import org.openhab.binding.fems.Constants;
 import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage;
 import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage.MethodType;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
@@ -143,7 +144,7 @@ public abstract class ESSProtocol {
 				params.setStopbits(1);
 				params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
 				params.setEcho(false);
-				params.setReceiveTimeout(500);
+				params.setReceiveTimeout(Constants.MODBUS_TIMEOUT);
 				ESSProtocol.serialConnection = new SerialConnection(params);
 			}
 			if(!ESSProtocol.serialConnection.isOpen()) {
