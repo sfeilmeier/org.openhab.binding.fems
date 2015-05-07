@@ -11,15 +11,15 @@ package org.openhab.binding.fems.internal.essprotocol;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.openhab.binding.fems.Constants;
 import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage;
 import org.openhab.binding.fems.agents.onlinemonitoring.message.DataMessage.MethodType;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
 
 public class DESSProtocol extends ESSProtocol {
 
-	public DESSProtocol(String modbusDevice, int unitid,
-			ArrayList<ModbusElementRange> wordRanges) {
-		super(modbusDevice, unitid, wordRanges);
+	public DESSProtocol(ArrayList<ModbusElementRange> wordRanges) {
+		super(Constants.MODBUS_UNITID_DESS, wordRanges);
 	}
 
 	@Override

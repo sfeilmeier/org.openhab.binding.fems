@@ -13,20 +13,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Properties;
 
 import net.wimpi.modbus.Modbus;
@@ -53,12 +47,14 @@ import org.openhab.binding.fems.exceptions.InternetException;
 import org.openhab.binding.fems.exceptions.RS485Exception;
 import org.openhab.binding.fems.tools.FEMSYaler;
 import org.openhab.binding.fems.tools.InitStatus;
+import org.openhab.binding.fems.tools.Log;
+import org.openhab.binding.fems.tools.Tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FEMSCore {
-	private final static SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 	private final static Logger logger = LoggerFactory.getLogger(FEMSCore.class); 
+	private final static Log log = new Log(FEMSCore.class);
 	
 	private static String apikey;
 	private static String ess;
@@ -76,7 +72,7 @@ public class FEMSCore {
 			debug = Boolean.parseBoolean(properties.getProperty("debug", "false"));
 			if(stream != null) stream.close();
 		} catch (IOException e) {
-			logError(e.getMessage());
+			log.error(e.getMessage());
 		}
 
 		// handle commandline parameters		
@@ -129,24 +125,6 @@ public class FEMSCore {
 		System.exit(0);
 	}
 
-	private static String logText = null;
-	private static void logInfo(String text) {
-		System.out.println(text);
-		if(logText == null) {
-			FEMSCore.logText = text;
-		} else {
-			FEMSCore.logText += "\n" + text;
-		}
-	}
-	private static void logError(String text) {
-		System.out.println("ERROR: " + text);
-		if(logText == null) {
-			FEMSCore.logText = "ERROR: " + text;
-		} else {
-			FEMSCore.logText += "\nERROR: " + text;
-		}
-	}
-
 	/**
 	 * Show all commandline options
 	 * @param options
@@ -155,129 +133,14 @@ public class FEMSCore {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp( "FemsTester", options );		
 	}
-	
-	/**
-	 * Checks if the current system date is valid
-	 * @return
-	 */
-	private static boolean isDateValid() {
-		Calendar now = Calendar.getInstance();
-		int year = now.get(Calendar.YEAR);  
-		if(year < 2014 || year > 2025) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-	
-	/**
-	 * Checks if modbus connection to storage system is working
-	 * @param ess "dess" or "cess"
-	 * @return
-	 */
-	private static boolean isModbusWorking(String ess) {
-		// remove old lock file
-		try {
-			if(Files.deleteIfExists(Paths.get("/var/lock/LCK..ttyUSB0"))) {
-				logInfo("Deleted old lock file");
-			}
-		} catch (IOException e) {
-			logError("Error deleting old lock file: " + e.getMessage());
-			e.printStackTrace();
-		}
-		
-		// find first matching device
-		String modbusDevice = "ttyUSB*";
-		String portName = "/dev/ttyUSB0"; // if no file found: use default
-		try (DirectoryStream<Path> files = Files.newDirectoryStream(Paths.get("/dev"), modbusDevice)) {
-		    for(Path file : files) {
-		    	portName = file.toAbsolutePath().toString();
-		    	logInfo("Set modbus portname: " + portName);
-		    }
-		} catch(Exception e) {
-			logInfo("Error trying to find " + modbusDevice + ": " + e.getMessage());
-			e.printStackTrace();
-		}
 
-		// default: DESS 
-		int baudRate = 9600;
-		int socAddress = 10143;
-		int unit = 4;
-		if(ess.compareTo("cess")==0) {
-			baudRate = 19200;
-			socAddress = 0x1402;
-			unit = 100;
-		}
-		SerialParameters params = new SerialParameters();
-		params.setPortName(portName);
-		params.setBaudRate(baudRate);
-		params.setDatabits(8);
-		params.setParity("None");
-		params.setStopbits(1);
-		params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
-		params.setEcho(false);
-		params.setReceiveTimeout(Constants.MODBUS_TIMEOUT);
-		logInfo("Timeout: " + params.getReceiveTimeout());
-		SerialConnection serialConnection = new SerialConnection(params);
-		try {
-			serialConnection.open();
-		} catch (Exception e) {
-			logError("Modbus connection error: " + e.getMessage());
-			serialConnection.close();
-			return false;
-		}
-		ModbusSerialTransaction modbusSerialTransaction = null;
-		ReadMultipleRegistersRequest req = new ReadMultipleRegistersRequest(socAddress, 1);
-		req.setUnitID(unit);
-		req.setHeadless();	
-		modbusSerialTransaction = new ModbusSerialTransaction(serialConnection);
-		modbusSerialTransaction.setRequest(req);
-		modbusSerialTransaction.setRetries(1);
-		try {
-			modbusSerialTransaction.execute();
-		} catch (ModbusException e) {
-			logError("Modbus execution error: " + e.getMessage());
-			serialConnection.close();
-			return false;
-		}
-		ModbusResponse res = modbusSerialTransaction.getResponse();
-		serialConnection.close();
-		
-		if (res instanceof ReadMultipleRegistersResponse) {
-			return true;
-    	} else if (res instanceof ExceptionResponse) {
-    		logError("Modbus read error: " + ((ExceptionResponse)res).getExceptionCode());
-    	} else {
-    		logError("Modbus read undefined response");
-    	}
-		return false;
-	}
-	
-	/**
-	 * Gets an IPv4 network address
-	 * @return
-	 */
-	private static InetAddress getIPaddress() {
-    	try {
-			NetworkInterface n = NetworkInterface.getByName("eth0");
-			Enumeration<InetAddress> ee = n.getInetAddresses();
-			while (ee.hasMoreElements()) {
-				InetAddress i = (InetAddress) ee.nextElement();
-				if(i instanceof Inet4Address) {
-					return i;
-		        }
-		    }
-    	} catch (SocketException e) { /* no IP-Address */ }
-    	return null; 
-	}
-	
 	/**
 	 * Initialize FEMS/FEMSmonitor system
 	 */
 	private static void init() {
-		int returnCode = 0; 
+		int returnCode = 0;
 		try {
-			logInfo("FEMS Initialization");
+			log.info("FEMS Initialization");
 			
 			// start IO Agent
 			Constants.IO_AGENT.start();
@@ -292,12 +155,12 @@ public class FEMSCore {
 			
 			try {
 				// check for valid ip address
-				InetAddress ip = getIPaddress();
+				InetAddress ip = Tools.getIPaddress();
 				if(ip == null) {
 			        try {
 						proc = rt.exec("/sbin/dhclient eth0");
 						proc.waitFor();
-						ip = getIPaddress(); /* try again */
+						ip = Tools.getIPaddress(); /* try again */
 						if(ip == null) { /* still no IP */
 							throw new IPException();
 						}
@@ -305,14 +168,14 @@ public class FEMSCore {
 						throw new IPException(e.getMessage());
 					}
 				}
-				logInfo("IP: " + ip.getHostAddress());
+				log.info("IP: " + ip.getHostAddress());
 				initStatus.setIp(true);
 				Constants.IO_AGENT.setLcdText(initStatus + " IP ok      ");
 				Constants.IO_AGENT.handleCommand(Constants.UserLED_1, OnOffType.ON);
 		
 				// check time
-				if(isDateValid()) { /* date is valid, so we check internet access only */
-					logInfo("Date ok: " + dateFormat.format(new Date()));
+				if(Tools.isDateValid()) { /* date is valid, so we check internet access only */
+					log.info("Date ok: " + Constants.LONG_DATE_FORMAT.format(new Date()));
 					try {
 						URL url = new URL("https://fenecon.de");
 						URLConnection con = url.openConnection();
@@ -322,71 +185,71 @@ public class FEMSCore {
 						throw new InternetException(e.getMessage());
 					}	
 				} else {
-					logInfo("Date not ok: " + dateFormat.format(new Date()));
+					log.info("Date not ok: " + Constants.LONG_DATE_FORMAT.format(new Date()));
 					try {
 						proc = rt.exec("/usr/sbin/ntpdate -b -u fenecon.de 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org");
 						proc.waitFor();
-						if(!isDateValid()) {
+						if(!Tools.isDateValid()) {
 							// try one more time
 							proc = rt.exec("/usr/sbin/ntpdate -b -u fenecon.de 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org");
 							proc.waitFor();						
-							if(!isDateValid()) {
-								throw new InternetException("Wrong Date: " + dateFormat.format(new Date()));
+							if(!Tools.isDateValid()) {
+								throw new InternetException("Wrong Date: " + Constants.LONG_DATE_FORMAT.format(new Date()));
 							}
 						}
-						logInfo("Date now ok: " + dateFormat.format(new Date()));
+						log.info("Date now ok: " + Constants.LONG_DATE_FORMAT.format(new Date()));
 					} catch (IOException | InterruptedException e) {
 						throw new InternetException(e.getMessage());
 					}
 				}
-				logInfo("Internet access is available");
+				log.info("Internet access is available");
 				initStatus.setInternet(true);
 				Constants.IO_AGENT.setLcdText(initStatus + " Internet ok");
 				Constants.IO_AGENT.handleCommand(Constants.UserLED_2, OnOffType.ON);
 						
 				// test modbus
-				if(isModbusWorking(ess)) {
-					logInfo("Modbus is ok");
+				if(isModbusWorking(log, ess)) {
+					log.info("Modbus is ok");
 					initStatus.setModbus(true);
 					Constants.IO_AGENT.setLcdText(initStatus + " RS485 ok   ");
 					Constants.IO_AGENT.handleCommand(Constants.UserLED_3, OnOffType.ON);
 				} else {	
 					if(debug) { // if we are in debug mode: ignore RS485-errors
-						logInfo("Ignore RS485-Error");
+						log.info("Ignore RS485-Error");
 					} else {
 						throw new RS485Exception();
 					}
 				}
 				
 				// Exit message
-				logInfo("Finished without error");
+				log.info("Finished without error");
 				Constants.IO_AGENT.setLcdText(initStatus + "  erfolgreich");
 				
 				// announce systemd finished
-				logInfo("Announce systemd: ready");
+				log.info("Announce systemd: ready");
 				try {
 					proc = rt.exec("/bin/systemd-notify --ready");
 					proc.waitFor();
 				} catch (IOException | InterruptedException e) {
-					logError(e.getMessage());
+					log.error(e.getMessage());
 				}
 			} catch (FEMSException e) {
-				logError(e.getMessage());
-				logError("Finished with error");
+				log.error(e.getMessage());
+				log.error("Finished with error");
 				Constants.IO_AGENT.setLcdText(initStatus + " " + e.getMessage());
 				returnCode = 1;
 			}
 			
 			// Check if Yaler is active
 			if(FEMSYaler.getFEMSYaler().isActive()) {
-				logInfo("Yaler is activated");
+				log.info("Yaler is activated");
 			} else {
-				logInfo("Yaler is deactivated");
+				log.info("Yaler is deactivated");
 			}
 			
 			// Send message
 			if(apikey == null) {
-				logError("Apikey is not available");
+				log.error("Apikey is not available");
 			} else {
 				// start Agents
 				Constants.ONLINE_MONITORING_AGENT.setApikey(apikey);
@@ -394,16 +257,16 @@ public class FEMSCore {
 				Constants.ONLINE_MONITORING_CACHE_AGENT.setApikey(apikey);
 				Constants.ONLINE_MONITORING_CACHE_AGENT.start();
 				
-				Constants.ONLINE_MONITORING_AGENT.sendSystemMessage(logText);
+				Constants.ONLINE_MONITORING_AGENT.sendSystemMessage(log.getLog());
 			}
 			
 			// start system update
-			logInfo("Start system update");
+			log.info("Start system update");
 			try {
 				proc = rt.exec("/usr/bin/fems-autoupdate");
 				proc.waitFor();
 			} catch (IOException | InterruptedException e) {
-				logError(e.getMessage());
+				log.error(e.getMessage());
 			}
 			
 			Constants.IO_AGENT.handleCommand(Constants.UserLED_4, OnOffType.ON);
@@ -412,9 +275,9 @@ public class FEMSCore {
 			returnCode = 2;
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
-			logError("Critical error: " + sw.toString());
+			log.error("Critical error: " + sw.toString());
 			e.printStackTrace();
-			Constants.ONLINE_MONITORING_AGENT.sendSystemMessage(logText); // try to send log
+			Constants.ONLINE_MONITORING_AGENT.sendSystemMessage(log.getLog()); // try to send log
 		}
 
 		try {
@@ -438,14 +301,14 @@ public class FEMSCore {
 	/** Set Analog Output
 	 */
 	private static void setAnalogOutput(String cmd) {
-		logInfo("Analog Output: " + cmd);
+		log.info("Analog Output: " + cmd);
 		String[] cmds = cmd.split(",");
 		
 		try {
 			if(cmds.length < 2)	throw new Exception("Missing parameters");
 			// parse ID of analog output
 			int id = Integer.parseInt(cmds[0]);
-			logInfo("No: " + id);
+			log.info("No: " + id);
 			String aout;
 			switch(id) {
 			case 1:
@@ -464,7 +327,7 @@ public class FEMSCore {
 				throw new Exception("ID must be between 1 and 4");
 			}
 			// parse percent/duty
-			logInfo("Duty: " + cmds[1]);
+			log.info("Duty: " + cmds[1]);
 			// set analog output
 			Constants.IO_AGENT.handleCommand(aout, new PercentType(cmds[1]));
 		} catch (Exception e) {
@@ -475,7 +338,7 @@ public class FEMSCore {
 	/** Set LCD-Text
 	 */
 	private static void setLcdText(String text) {
-		logInfo("LCD-Text: " + text);
+		log.info("LCD-Text: " + text);
 		Constants.IO_AGENT.setLcdText(true, text.substring(0, text.length() > 16 ? 16 : text.length()));
 		if(text.length() > 15) {
 			Constants.IO_AGENT.setLcdText(false, text.substring(16, text.length() > 32 ? 32 : text.length()));
@@ -485,17 +348,99 @@ public class FEMSCore {
 	/** Set LCD-Text
 	 */
 	private static void setLcdBrightness(int percent) {
-		logInfo("LCD-Brightness: " + percent + " %");
+		log.info("LCD-Brightness: " + percent + " %");
 		Constants.IO_AGENT.handleCommand("LCD_Backlight", new PercentType(percent));
 	}	
 	
 	/** Test RS485 connection to storage system
 	 */
 	private static void testRs485() {
-		if(isModbusWorking(ess)) {
-			logInfo("RS485-Modbus connection to " + ess + "-system is working");
+		if(isModbusWorking(log, ess)) {
+			log.info("RS485-Modbus connection to " + ess + "-system is working");
 		} else {
-			logInfo("RS485-Modbus connection to " + ess + "-system is NOT working");
+			log.info("RS485-Modbus connection to " + ess + "-system is NOT working");
 		}
+	}
+	
+	/**
+	 * Checks if modbus connection to storage system is working
+	 * @param ess "dess" or "cess"
+	 * @return
+	 */
+	public static boolean isModbusWorking(Log log, String ess) {
+		// remove old lock file
+		try {
+			if(Files.deleteIfExists(Paths.get("/var/lock/LCK..ttyUSB0"))) {
+				log.info("Deleted old lock file");
+			}
+		} catch (IOException e) {
+			log.error("Error deleting old lock file: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
+		// find first matching device
+		String modbusDevice = "ttyUSB*";
+		String portName = "/dev/ttyUSB0"; // if no file found: use default
+		try (DirectoryStream<Path> files = Files.newDirectoryStream(Paths.get("/dev"), modbusDevice)) {
+		    for(Path file : files) {
+		    	portName = file.toAbsolutePath().toString();
+		    	log.info("Set modbus portname: " + portName);
+		    }
+		} catch(Exception e) {
+			log.info("Error trying to find " + modbusDevice + ": " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		// default: DESS 
+		int baudRate = 9600;
+		int socAddress = 10143;
+		int unit = 4;
+		if(ess.compareTo("cess")==0) {
+			baudRate = 19200;
+			socAddress = 0x1402;
+			unit = 100;
+		}
+		SerialParameters params = new SerialParameters();
+		params.setPortName(portName);
+		params.setBaudRate(baudRate);
+		params.setDatabits(8);
+		params.setParity("None");
+		params.setStopbits(1);
+		params.setEncoding(Modbus.SERIAL_ENCODING_RTU);
+		params.setEcho(false);
+		params.setReceiveTimeout(Constants.MODBUS_TIMEOUT);
+		SerialConnection serialConnection = new SerialConnection(params);
+		try {
+			serialConnection.open();
+		} catch (Exception e) {
+			log.error("Modbus connection error: " + e.getMessage());
+			serialConnection.close();
+			return false;
+		}
+		ModbusSerialTransaction modbusSerialTransaction = null;
+		ReadMultipleRegistersRequest req = new ReadMultipleRegistersRequest(socAddress, 1);
+		req.setUnitID(unit);
+		req.setHeadless();	
+		modbusSerialTransaction = new ModbusSerialTransaction(serialConnection);
+		modbusSerialTransaction.setRequest(req);
+		modbusSerialTransaction.setRetries(1);
+		try {
+			modbusSerialTransaction.execute();
+		} catch (ModbusException e) {
+			log.error("Modbus execution error: " + e.getMessage());
+			serialConnection.close();
+			return false;
+		}
+		ModbusResponse res = modbusSerialTransaction.getResponse();
+		serialConnection.close();
+		
+		if (res instanceof ReadMultipleRegistersResponse) {
+			return true;
+    	} else if (res instanceof ExceptionResponse) {
+    		log.error("Modbus read error: " + ((ExceptionResponse)res).getExceptionCode());
+    	} else {
+    		log.error("Modbus read undefined response");
+    	}
+		return false;
 	}
 }

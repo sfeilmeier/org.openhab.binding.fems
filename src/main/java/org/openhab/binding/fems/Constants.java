@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.openhab.binding.fems.agents.ess.ESSAgent;
 import org.openhab.binding.fems.agents.io.IOAgent;
 import org.openhab.binding.fems.agents.onlinemonitoring.OnlineMonitoringAgent;
 import org.openhab.binding.fems.agents.onlinemonitoring.OnlineMonitoringCacheAgent;
@@ -38,9 +39,10 @@ public class Constants {
     public final static Collection<ThingTypeUID> SUPPORTED_THING_TYPES = 
     		Lists.newArrayList(THING_TYPE_CESS, THING_TYPE_DESS, THING_TYPE_WEATHER, THING_TYPE_IO);   
     
-    // Time formats
+    // Date and Time formats
     public final static SimpleDateFormat SHORT_TIME_FORMAT = new SimpleDateFormat("HH:mm");
     public final static SimpleDateFormat LONG_TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    public final static SimpleDateFormat LONG_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
     
     // Agents
     public final static OnlineMonitoringCacheAgent ONLINE_MONITORING_CACHE_AGENT = 
@@ -49,6 +51,8 @@ public class Constants {
     		new OnlineMonitoringAgent("Online-Monitoring", ONLINE_MONITORING_CACHE_AGENT);
     public final static IOAgent IO_AGENT =
     		new IOAgent("IO");
+    public final static ESSAgent ESS_AGENT =
+    		new ESSAgent("ESS");
     
     // IO Items
 	public final static String LCD_1 = "LCD_1";
@@ -76,4 +80,8 @@ public class Constants {
 	public final static String DigitalInput_4 = "DigitalInput_4";
 	
 	public final static int MODBUS_TIMEOUT = 5000;
+	public final static String MODBUS_DEVICE = "ttyUSB*";
+	public final static int MODBUS_UNITID_DESS = 4;
+	public final static int MODBUS_UNITID_CESS = 100;
+	public final static int ESS_PERIOD = 60; // in seconds
 }

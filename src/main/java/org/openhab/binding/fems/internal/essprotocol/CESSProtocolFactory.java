@@ -10,13 +10,14 @@ package org.openhab.binding.fems.internal.essprotocol;
 
 import java.util.ArrayList;
 
+import org.openhab.binding.fems.Constants;
 import org.openhab.binding.fems.internal.essprotocol.modbus.BitWordElement;
 import org.openhab.binding.fems.internal.essprotocol.modbus.DecimalWordItem;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ModbusElementRange;
 import org.openhab.binding.fems.internal.essprotocol.modbus.OnOffBitItem;
 
 public class CESSProtocolFactory {
-	public static ESSProtocol getProtocol(String modbusinterface, int unitid) {
+	public static ESSProtocol getProtocol() {
 		// TODO: Allow Reserved-Words
 		//TODO: New type ItemPercentage
 		ArrayList<ModbusElementRange> wordRanges = new ArrayList<ModbusElementRange>();
@@ -344,7 +345,7 @@ public class CESSProtocolFactory {
 				new DecimalWordItem("Battery_string_1_cell_1_temperature"),
 				new DecimalWordItem("Battery_string_1_cell_2_temperature") ) );
 		
-		return new CESSProtocol(modbusinterface, unitid, wordRanges);
+		return new CESSProtocol(wordRanges);
 	}
 	
 	private static ArrayList<ModbusElementRange> getPCSInformation(String device, int offset) {

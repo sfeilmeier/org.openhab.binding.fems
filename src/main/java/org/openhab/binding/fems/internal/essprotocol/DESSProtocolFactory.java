@@ -19,7 +19,7 @@ import org.openhab.binding.fems.internal.essprotocol.modbus.PercentageWordItem;
 import org.openhab.binding.fems.internal.essprotocol.modbus.ReservedElement;
 
 public class DESSProtocolFactory {
-	public static ESSProtocol getProtocol(String modbusinterface, int unitid) {
+	public static ESSProtocol getProtocol() {
 		ArrayList<ModbusElementRange> wordRanges = new ArrayList<ModbusElementRange>();
 		
 		wordRanges.add(	new ModbusElementRange(10000,
@@ -813,7 +813,7 @@ public class DESSProtocolFactory {
 		/*1244*/ new DecimalWordItem("PV2_Charger2_Radiator_Temperature"),
 		/*1245-46*/ new DecimalDoublewordItem("PV2_Charger2_Cumulative_Output") ) );
 		
-		return new DESSProtocol(modbusinterface, unitid, wordRanges);
+		return new DESSProtocol(wordRanges);
 	}
 	
 	// TODO: use BECU information

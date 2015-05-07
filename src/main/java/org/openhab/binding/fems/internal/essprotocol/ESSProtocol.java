@@ -44,12 +44,10 @@ public abstract class ESSProtocol {
 	private static Object serialConnectionLock = new Object();
 	protected ArrayList<ModbusElementRange> wordRanges;
 	
-	protected String modbusDevice;
-	protected int unitid;
+	private final Integer unitid;
 	
-    public ESSProtocol(String modbusDevice, int unitid, ArrayList<ModbusElementRange> wordRanges) {
+    public ESSProtocol(int unitid, ArrayList<ModbusElementRange> wordRanges) {
 		this.wordRanges = wordRanges;
-		this.modbusDevice = modbusDevice;
 		this.unitid = unitid;
 	}
     
@@ -127,13 +125,13 @@ public abstract class ESSProtocol {
 			if(serialConnection==null) {
 				// find first matching device
 				String portName = "/dev/ttyUSB0"; // if no file found: use default
-				try (DirectoryStream<Path> files = Files.newDirectoryStream(Paths.get("/dev"), modbusDevice)) {
+				try (DirectoryStream<Path> files = Files.newDirectoryStream(Paths.get("/dev"), Constants.MODBUS_DEVICE)) {
 				    for(Path file : files) {
 				    	portName = file.toAbsolutePath().toString();
 				    	logger.info("Set modbus portname: " + portName);
 				    }
 				} catch(Exception e) {
-					logger.info("Error trying to find " + modbusDevice + ": " + e.getMessage());
+					logger.info("Error trying to find " + Constants.MODBUS_DEVICE + ": " + e.getMessage());
 					e.printStackTrace();
 				}
 				SerialParameters params = new SerialParameters();
