@@ -79,7 +79,9 @@ public class Constants {
 	public final static String DigitalInput_3 = "DigitalInput_3";
 	public final static String DigitalInput_4 = "DigitalInput_4";
 	
-	public final static int MODBUS_TIMEOUT = 5000;
+	public final static int MODBUS_TIMEOUT = 3000;
+	public final static int MODBUS_TRANS_DELAY_MS = 1000;
+	public final static int MODBUS_RETRIES = 10;
 	public final static String MODBUS_DEVICE = "ttyUSB*";
 	public final static int MODBUS_UNITID_DESS = 4;
 	public final static int MODBUS_UNITID_CESS = 100;

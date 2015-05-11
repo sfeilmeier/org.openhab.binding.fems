@@ -131,6 +131,7 @@ public class DESSProtocolFactory {
 					/* 0: Forbidden
 					 * 1: Enabling
 					 */
+		
 		/*10*/	new DecimalWordItem("BSMU_Dynamic_Fault_Isolation_Enabling_Status"),
 					/* 0: Forbidden
 					 * 1: Enabling

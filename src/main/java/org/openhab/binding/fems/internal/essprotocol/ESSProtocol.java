@@ -73,19 +73,32 @@ public abstract class ESSProtocol {
 		SerialConnection serialCon = getSerialConnection();
 		synchronized (serialConnectionLock) {
 			for (ModbusElementRange wordRange : wordRanges) {
-				ModbusSerialTransaction trans = wordRange.getModbusSerialTransaction(serialCon, unitid);
-				trans.setRetries(1);
-				trans.execute();
-				ModbusResponse res = trans.getResponse();
-				
-				if (res instanceof ReadMultipleRegistersResponse) {
-					wordRange.updateData((ReadMultipleRegistersResponse)res);
-		    	} else if (res instanceof ExceptionResponse) {
-		    		throw new Exception("Modbus exception response:" + ((ExceptionResponse)res).getExceptionCode());
-		    	} else {
-		    		throw new Exception("Undefined Modbus response");
-		    	}
-				Thread.sleep(100);
+				int noOfTry=0;
+				while(true) {
+					noOfTry++;
+					ModbusSerialTransaction trans = wordRange.getModbusSerialTransaction(serialCon, unitid);
+					trans.setTransDelayMS(Constants.MODBUS_TRANS_DELAY_MS);
+					trans.setRetries(Constants.MODBUS_RETRIES);
+					Thread.sleep(1000);
+					trans.execute();
+					ModbusResponse res = trans.getResponse();
+					
+					if (res instanceof ReadMultipleRegistersResponse) {
+						wordRange.updateData((ReadMultipleRegistersResponse)res);
+						break;
+			    	} else {
+			    		if (noOfTry < Constants.MODBUS_RETRIES) {
+			    			// try again
+			    		} else {
+				    		if (res instanceof ExceptionResponse) {
+				    			throw new Exception("Modbus exception response:" + ((ExceptionResponse)res).getExceptionCode());
+				    		} else {
+				    			throw new Exception("Undefined Modbus response");
+				    			//TODO: hier nicht rausspringen, sondern nochmal versuchen
+				    		}
+			    		}
+					}
+				}
 			}		
 		}
 	}

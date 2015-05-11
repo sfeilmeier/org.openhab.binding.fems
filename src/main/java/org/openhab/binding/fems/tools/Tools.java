@@ -1,35 +1,18 @@
 package org.openhab.binding.fems.tools;
 
-import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.wimpi.modbus.Modbus;
-import net.wimpi.modbus.ModbusException;
-import net.wimpi.modbus.io.ModbusSerialTransaction;
-import net.wimpi.modbus.msg.ExceptionResponse;
-import net.wimpi.modbus.msg.ModbusResponse;
-import net.wimpi.modbus.msg.ReadMultipleRegistersRequest;
-import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
-import net.wimpi.modbus.net.SerialConnection;
-import net.wimpi.modbus.util.SerialParameters;
 
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
-import org.openhab.binding.fems.Constants;
 
 public class Tools {
 	/** Convert Eclipse Smarthome State to objects that JSON Smart can handle:
@@ -72,7 +55,7 @@ public class Tools {
 	 */
 	public static InetAddress getIPaddress() {
     	try {
-			NetworkInterface n = NetworkInterface.getByName("eth0");
+			NetworkInterface n = NetworkInterface.getByName("eth0"); // can be null -> throw NullPointerException in next line
 			Enumeration<InetAddress> ee = n.getInetAddresses();
 			while (ee.hasMoreElements()) {
 				InetAddress i = (InetAddress) ee.nextElement();
@@ -80,7 +63,7 @@ public class Tools {
 					return i;
 		        }
 		    }
-    	} catch (SocketException e) { /* no IP-Address */ }
+    	} catch (Throwable e) { /* no IP-Address */ }
     	return null; 
 	}
 	
