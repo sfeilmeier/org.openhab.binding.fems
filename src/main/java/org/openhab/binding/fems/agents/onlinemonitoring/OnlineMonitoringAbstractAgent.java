@@ -45,6 +45,11 @@ public abstract class OnlineMonitoringAbstractAgent extends Agent {
 	 * Send message to online-monitoring 
 	 */
 	protected Map<?, ?> sendToOnlineMonitoring(JSONRPC2Request request) throws JSONRPC2SessionException, IOException {
+		// Return if request is invalid
+		if(request == null) {
+			return null;
+		}
+		
 		// was apikey set? otherwise send to cache
 		if(this.apikey == null) {
 			logger.info("No apikey - caching data");
