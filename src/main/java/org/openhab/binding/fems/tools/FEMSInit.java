@@ -39,7 +39,7 @@ public class FEMSInit implements ESSAgentListener {
 			Process proc;
 			InitStatus initStatus = new InitStatus();
 			
-			try {
+			try {			
 				// check for valid ip address
 				InetAddress ip = Tools.getIPaddress();
 				if(ip == null) {
@@ -93,6 +93,14 @@ public class FEMSInit implements ESSAgentListener {
 				Constants.IO_AGENT.setLcdText(initStatus + " Internet ok");
 				Constants.IO_AGENT.handleCommand(Constants.UserLED_2, OnOffType.ON);
 						
+				// start system update
+				log.info("Start system update");
+				try {
+					proc = rt.exec("/usr/bin/fems-autoupdate");
+				} catch (IOException e) {
+					log.error(e.getMessage());
+				}
+				
 				// test modbus
 				String searchString = "BSMU_Battery_Stack_Overall_SOC";
 				if(ess.equals("cess")) {
@@ -161,15 +169,6 @@ public class FEMSInit implements ESSAgentListener {
 			// Send message
 			Constants.ONLINE_MONITORING_AGENT.sendSystemMessage(log.getLog());
 			
-			// start system update
-			log.info("Start system update");
-			try {
-				proc = rt.exec("/usr/bin/fems-autoupdate");
-				//TODO proc.waitFor();
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
-			
 			Constants.IO_AGENT.handleCommand(Constants.UserLED_4, OnOffType.ON);
 			
 		} catch (Throwable e) { // Catch everything else
@@ -182,25 +181,10 @@ public class FEMSInit implements ESSAgentListener {
 		}
 		
 		if(returnCode != 0) {
+			log.error("Waiting...");
+			try { Thread.sleep(5000); } catch (InterruptedException e) { }
 			System.exit(returnCode);
 		}
-	
-		/*TODO try {
-			Thread.sleep(2000);  // give the agents some time to try sending
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		// Stop agents
-		Constants.ONLINE_MONITORING_AGENT.interrupt();
-		try { Constants.ONLINE_MONITORING_AGENT.join(); } catch (InterruptedException e) { e.printStackTrace();	}
-		Constants.ONLINE_MONITORING_CACHE_AGENT.interrupt();
-		try { Constants.ONLINE_MONITORING_CACHE_AGENT.join();  } catch (InterruptedException e) { e.printStackTrace();	}
-		Constants.IO_AGENT.interrupt();
-		try { Constants.IO_AGENT.join();  } catch (InterruptedException e) { e.printStackTrace();	}
-		
-		// Exit
-		System.exit(returnCode);*/
 	}
 
 	@Override
